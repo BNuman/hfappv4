@@ -159,6 +159,12 @@
     .app-shell .content { padding-bottom:22px; }
     .app-shell .content .card, .app-shell .content .admin-panel { margin-bottom:16px; }
 
+  
+    @media (max-width: 991.98px){
+      .main-sidebar{display:none !important;}
+      .content-wrapper{margin-left:0 !important;}
+    }
+
   </style>
 </head>
 <body>
@@ -201,6 +207,11 @@
         <div class="container-fluid">
           <h1 id="shellPageTitle">Volontär</h1>
           <div class="lead" id="shellPageSub">Anmäl dig till matutdelning eller hämtning.</div>
+          <div id="shellTopButtons" style="display:flex;gap:8px;margin-top:12px;">
+            <button type="button" id="shellTopVolunteer" onclick="openShellPane('volunteer')" style="flex:1;padding:12px;border:none;border-radius:12px;background:#2E7D4F;color:#fff;font-weight:900;font-family:Nunito,sans-serif;">Volontär</button>
+            <button type="button" id="shellTopAdmin" onclick="openShellPane('admin')" style="flex:1;padding:12px;border:none;border-radius:12px;background:#e8ecef;color:#1f2937;font-weight:900;font-family:Nunito,sans-serif;">Admin</button>
+            <button type="button" id="shellTopQueue" onclick="openShellPane('queue')" style="flex:1;padding:12px;border:none;border-radius:12px;background:#e8ecef;color:#1f2937;font-weight:900;font-family:Nunito,sans-serif;">Digital kö</button>
+          </div>
         </div>
       </section>
       <section class="content">
@@ -218,7 +229,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.31 – AdminLTE shell</div>
+    <div class="version">Version D11.32 – AdminLTE shell</div>
   </div>
 
   
@@ -614,7 +625,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.31 – AdminLTE shell<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D11.32 – AdminLTE shell<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -650,7 +661,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D11.31 – AdminLTE shell<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D11.32 – AdminLTE shell<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2400,6 +2411,21 @@ async function init() {
 }
 init();
 
+
+function shellSetActiveTopButtons(key) {
+  const map = {
+    volunteer: document.getElementById('shellTopVolunteer'),
+    admin: document.getElementById('shellTopAdmin'),
+    queue: document.getElementById('shellTopQueue')
+  };
+  Object.entries(map).forEach(([k, btn]) => {
+    if (!btn) return;
+    const active = k === key;
+    btn.style.background = active ? '#2E7D4F' : '#e8ecef';
+    btn.style.color = active ? '#fff' : '#1f2937';
+  });
+}
+
 function shellSetActiveNav(key) {
   ['Volunteer','Admin','Queue'].forEach(k => {
     const el = document.getElementById('shellNav' + k);
@@ -2487,6 +2513,8 @@ function forceShellPane(key) {
   if (adminPane) adminPane.classList.remove('active');
 
   shellSetActiveNav(key);
+  shellSetActiveTopButtons(key);
+  shellSetActiveTopButtons(key);
 
   if (key === 'admin' || key === 'queue') {
     if (adminPane) adminPane.classList.add('active');
