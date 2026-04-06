@@ -156,7 +156,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.24 – UX refactor</div>
+    <div class="version">Version D11.25 – UX refactor</div>
   </div>
 
   <div id="appHomeNav" class="view-mode-nav">
@@ -563,7 +563,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.24 – UX refactor<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D11.25 – UX refactor<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -599,7 +599,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D11.24 – UX refactor<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D11.25 – UX refactor<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2213,12 +2213,12 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  setStyleDisplay('volunteerCard', 'none');
-  setStyleDisplay('cancelEntryRow', 'none');
-  setStyleDisplay('cancelCard', 'none');
-  setStyleDisplay('adminEntryRow', 'none');
-  setStyleDisplay('adminPanel', 'none');
-  setStyleDisplay('queueCard', '');
+  hideById('volunteerCard');
+  hideById('cancelEntryRow');
+  hideById('cancelCard');
+  hideById('adminEntryRow');
+  hideById('adminPanel');
+  showById('queueCard');
   startQueuePolling();
 
   const title = document.getElementById('queueTitle');
@@ -2364,21 +2364,21 @@ function setViewButtons(view) {
   document.getElementById('viewBtnQueueMgmt')?.classList.toggle('active', view === 'queue_mgmt');
 }
 function showVolunteerView() {
-  setStyleDisplay('volunteerCard', '');
-  setStyleDisplay('cancelEntryRow', '');
-  setStyleDisplay('cancelCard', 'none');
-  setStyleDisplay('adminEntryRow', 'none');
-  setStyleDisplay('adminPanel', 'none');
-  setStyleDisplay('queueCard', 'none');
+  showById('volunteerCard');
+  showById('cancelEntryRow');
+  hideById('cancelCard');
+  hideById('adminEntryRow');
+  hideById('adminPanel');
+  hideById('queueCard');
   document.getElementById('floatingHomeBtn')?.classList.add('hidden');
 }
 function showAdminView(tabIndex) {
-  setStyleDisplay('volunteerCard', 'none');
-  setStyleDisplay('cancelEntryRow', 'none');
-  setStyleDisplay('cancelCard', 'none');
-  setStyleDisplay('adminEntryRow', '');
-  setStyleDisplay('adminPanel', '');
-  setStyleDisplay('queueCard', 'none');
+  hideById('volunteerCard');
+  hideById('cancelEntryRow');
+  hideById('cancelCard');
+  showById('adminEntryRow');
+  showById('adminPanel');
+  hideById('queueCard');
   document.getElementById('floatingHomeBtn')?.classList.remove('hidden');
   if (typeof switchTab === 'function') switchTab(tabIndex);
 }
@@ -2388,12 +2388,12 @@ function setAppView(view) {
 
   // If user is on public queue link, keep that mode untouched
   if (typeof isQueueMode === 'function' && isQueueMode()) {
-    setStyleDisplay('volunteerCard', 'none');
-    setStyleDisplay('cancelEntryRow', 'none');
-    setStyleDisplay('cancelCard', 'none');
-    setStyleDisplay('adminEntryRow', 'none');
-    setStyleDisplay('adminPanel', 'none');
-    setStyleDisplay('queueCard', '');
+    hideById('volunteerCard');
+    hideById('cancelEntryRow');
+    hideById('cancelCard');
+    hideById('adminEntryRow');
+    hideById('adminPanel');
+    showById('queueCard');
     document.getElementById('appHomeNav')?.classList.add('hidden');
     document.getElementById('viewModeHelp')?.classList.add('hidden');
     document.getElementById('floatingHomeBtn')?.classList.add('hidden');
