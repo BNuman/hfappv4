@@ -157,7 +157,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.22 – UX refactor</div>
+    <div class="version">Version D11.23 – UX refactor</div>
   </div>
 
   <div id="appHomeNav" class="view-mode-nav">
@@ -563,9 +563,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.22 – UX refactor',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D11.23 – UX refactor<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -601,9 +599,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D11.17 – digital queue',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D11.23 – UX refactor<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1713,63 +1709,29 @@ function updateViewButtons(view) {
   document.getElementById('viewBtnAdmin')?.classList.toggle('active', view === 'admin');
   document.getElementById('viewBtnQueueMgmt')?.classList.toggle('active', view === 'queue_mgmt');
 }
+function setAdminTabAndShow(tabIndex) {
+  if (typeof switchTab === 'function') {
+    switchTab(tabIndex);
+  }
+  const adminPanel = document.getElementById('adminPanel');
+  if (adminPanel) adminPanel.classList.add('show');
+}
+
 function setAppView(view) {
   currentAppView = view;
-  localStorage.setItem('hf_app_view_v5', view);
-
-  // Public queue via query params should keep only queueCard visible
-  if (typeof isQueueMode === 'function' && isQueueMode()) {
-    hideEl('volunteerCard');
-    hideEl('cancelEntryRow');
-    hideEl('cancelCard');
-    hideEl('adminEntryRow');
-    hideEl('adminPanel');
-    showEl('queueCard');
-    hideEl('floatingHomeBtn');
-    const nav = document.getElementById('appHomeNav');
-    if (nav) nav.classList.add('app-hidden');
-    return;
-  }
-
-  const nav = document.getElementById('appHomeNav');
-  if (nav) nav.classList.remove('app-hidden');
-
-  // Reset all sections
-  showEl('volunteerCard'); // default hidden toggled below
-  showEl('cancelEntryRow');
-  hideEl('cancelCard');
-  showEl('adminEntryRow');
-  hideEl('queueCard');
-  setAdminOpen(false);
-  hideEl('adminPanel');
-  hideEl('floatingHomeBtn');
-
-  if (view === 'volunteer') {
-    showEl('volunteerCard');
-    showEl('cancelEntryRow');
-    hideEl('adminEntryRow');
-    hideEl('adminPanel');
-    hideEl('queueCard');
-  } else if (view === 'admin') {
-    hideEl('volunteerCard');
-    hideEl('cancelEntryRow');
-    hideEl('cancelCard');
-    hideEl('adminEntryRow');
-    showEl('adminPanel');
-    setAdminOpen(true);
-    showEl('floatingHomeBtn');
-  } else if (view === 'queue_mgmt') {
-    hideEl('volunteerCard');
-    hideEl('cancelEntryRow');
-    hideEl('cancelCard');
-    hideEl('adminEntryRow');
-    showEl('adminPanel');
-    setAdminOpen(true);
-    showEl('floatingHomeBtn');
-    if (typeof switchTab === 'function') switchTab(3);
-  }
-
+  localStorage.setItem('hf_app_view_v4', view);
+  document.body.setAttribute('data-view', view);
   updateViewButtons(view);
+
+  const homeBtn = document.getElementById('floatingHomeBtn');
+  if (homeBtn) homeBtn.classList.toggle('hidden', view === 'volunteer');
+
+  if (view === 'admin') {
+    setAdminTabAndShow(0);
+  } else if (view === 'queue') {
+    setAdminTabAndShow(3);
+  }
+
   window.scrollTo({top:0, behavior:'auto'});
 }
 function applyInitialAppView() {
