@@ -141,22 +141,22 @@
     .called-number-sub{font-size:13px;font-weight:700;color:#64748b;margin-top:8px;line-height:1.45}
 
   
-    .view-mode-nav{display:flex;gap:8px;margin:0 0 14px;position:sticky;top:0;z-index:20;background:#fff;padding:8px 0}
+    .view-mode-nav{display:flex;gap:8px;margin:0 0 14px;position:sticky;top:0;z-index:30;background:#fff;padding:8px 0}
     .view-mode-btn{flex:1;border:none;border-radius:14px;padding:12px 10px;font-size:14px;font-weight:900;font-family:'Nunito',sans-serif;background:#eef3f0;color:#2f3b34;cursor:pointer}
     .view-mode-btn.active{background:#2E7D4F;color:#fff;box-shadow:0 8px 18px rgba(46,125,79,.18)}
-    .screen-title{font-size:22px;font-weight:900;margin:0 0 12px}
-    .screen-sub{font-size:13px;color:#64748b;font-weight:700;margin:-4px 0 12px}
+    .screen-title{font-size:22px;font-weight:900;margin:0 0 8px}
+    .screen-sub{font-size:13px;color:#64748b;font-weight:700;margin:0 0 12px}
     .floating-home-btn{position:fixed;right:14px;bottom:14px;z-index:30;border:none;border-radius:999px;padding:12px 14px;background:#2E7D4F;color:#fff;font-weight:900;font-family:'Nunito',sans-serif;box-shadow:0 10px 22px rgba(46,125,79,.22);cursor:pointer}
 
   </style>
 </head>
 <body>
 
-  <div id="appHomeNav" class="view-mode-nav">
-    <button class="view-mode-btn active" id="viewBtnVolunteer" type="button" onclick="setAppView('volunteer')">Volontär</button>
-    <button class="view-mode-btn" id="viewBtnAdmin" type="button" onclick="setAppView('admin')">Admin</button>
-    <button class="view-mode-btn" id="viewBtnQueue" type="button" onclick="setAppView('queue')">Digital kö</button>
-  </div>
+<div id="appHomeNav" class="view-mode-nav">
+  <button class="view-mode-btn active" id="viewBtnVolunteer" type="button" onclick="setAppView('volunteer')">Volontär</button>
+  <button class="view-mode-btn" id="viewBtnAdmin" type="button" onclick="setAppView('admin')">Admin</button>
+  <button class="view-mode-btn" id="viewBtnQueue" type="button" onclick="setAppView('queue')">Digital kö</button>
+</div>
 
 <div class="container">
   <div class="logo-area">
@@ -168,8 +168,8 @@
 
   
   <div class="card hidden" id="queueCard">
-    <div class="screen-title" id="queuePublicTitleBig">Digital kö</div>
-    <div class="screen-sub" id="queuePublicSub">Se kön, välj språk och ställ dig i kö.</div>
+    <div class="screen-title">Digital kö</div>
+    <div class="screen-sub">Se kön, välj språk och ställ dig i kö.</div>
     <div class="section-label hidden" id="queueSectionLabel">Digital kö</div>
     <div class="section-label" id="queueLanguageLabel" style="margin-top:4px;margin-bottom:8px;text-align:center;">Välj språk</div>
     <div class="lang-bar" id="queueLangBar">
@@ -206,7 +206,7 @@
     <button class="submit-btn hidden" type="button" id="queueLeaveBtn" onclick="leaveQueue()" style="margin-top:10px;">Lämna kön</button>
   </div>
 
-  <div class="card">
+  <div class="card" id="volunteerCard">
     <div id="mainForm">
       <div class="screen-title">Volontär</div>
       <div class="screen-sub">Anmäl dig till matutdelning eller hämtning.</div>
@@ -258,9 +258,11 @@
   </div>
 
 
-  <div class="admin-row"><span class="admin-link" onclick="toggleAdmin()">🔐 Admin-inloggning</span></div>
+  <div class="admin-row" id="adminEntryRow"><span class="admin-link" onclick="toggleAdmin()">🔐 Admin-inloggning</span></div>
 
   <div class="card admin-panel" id="adminPanel">
+    <div class="screen-title">Admin</div>
+    <div class="screen-sub">Hantera aktiviteter, anmälningar och digital kö.</div>
     <div id="adminLogin">
       <div class="section-label">Admin e-post</div>
       <input type="text" id="adminEmailInput" placeholder="admin@dinorg.se">
@@ -1691,6 +1693,7 @@ function renderCreatePickupOptions() {
 }
 
 function toggleAdmin() {
+  setAppView('admin');
   document.getElementById('adminPanel').classList.toggle('show');
 }
 async function doLogin() {
@@ -2216,11 +2219,10 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  const volunteerCard = getVolunteerContainer();
-  if (volunteerCard) volunteerCard.classList.add('hidden');
-  document.querySelectorAll('.admin-row').forEach(x => x.classList.add('hidden'));
-  document.getElementById('adminPanel').classList.add('hidden');
-  document.getElementById('queueCard').classList.remove('hidden');
+  setDisplay(document.getElementById('volunteerCard'), false);
+  setDisplay(document.getElementById('adminPanel'), false);
+  setDisplay(document.getElementById('adminEntryRow'), false);
+  setDisplay(document.getElementById('queueCard'), true);
   startQueuePolling();
 
   const title = document.getElementById('queueTitle');
@@ -2339,7 +2341,6 @@ async function init() {
     refreshSignupButton();
     restoreAdminSession();
     applyQueueLanguageStatic();
-    syncAppViewForSpecialModes();
     updateCurrentNumberDisplay();
     if (isQueueMode()) {
       renderQueueView();
@@ -2352,65 +2353,52 @@ async function init() {
     document.getElementById('eventsList').innerHTML = '<div class="empty-state">Kunde inte ladda data.<br>' + escapeHtml(err.message) + '</div>';
   }
 }
-syncAppViewForSpecialModes();
 init();
+applyInitialAppView();
 
-let currentAppView = localStorage.getItem('hf_app_view_v1') || 'volunteer';
+let currentAppView = localStorage.getItem('hf_app_view_v2') || 'volunteer';
 
-function getVolunteerContainer() {
-  const mainForm = document.getElementById('mainForm');
-  return mainForm ? mainForm.closest('.card') : null;
+function setDisplay(el, show) {
+  if (!el) return;
+  el.style.display = show ? '' : 'none';
 }
+
 function setAppView(view) {
   currentAppView = view;
-  localStorage.setItem('hf_app_view_v1', view);
+  localStorage.setItem('hf_app_view_v2', view);
 
-  const volunteerCard = getVolunteerContainer();
+  const volunteerCard = document.getElementById('volunteerCard');
   const adminPanel = document.getElementById('adminPanel');
+  const adminEntryRow = document.getElementById('adminEntryRow');
   const queueCard = document.getElementById('queueCard');
-  const nav = document.getElementById('appHomeNav');
   const homeBtn = document.getElementById('floatingHomeBtn');
 
-  if (volunteerCard) volunteerCard.classList.add('hidden');
-  if (adminPanel) adminPanel.classList.add('hidden');
-  if (queueCard && !isQueueMode()) queueCard.classList.add('hidden');
+  // Public queue via link should stay isolated
+  if (isQueueMode && isQueueMode()) {
+    setDisplay(volunteerCard, false);
+    setDisplay(adminPanel, false);
+    setDisplay(adminEntryRow, false);
+    setDisplay(queueCard, true);
+    if (homeBtn) homeBtn.classList.add('hidden');
+    return;
+  }
+
+  setDisplay(volunteerCard, view === 'volunteer');
+  setDisplay(adminPanel, view === 'admin');
+  setDisplay(adminEntryRow, view === 'admin');
+  setDisplay(queueCard, view === 'queue');
 
   document.getElementById('viewBtnVolunteer')?.classList.toggle('active', view === 'volunteer');
   document.getElementById('viewBtnAdmin')?.classList.toggle('active', view === 'admin');
   document.getElementById('viewBtnQueue')?.classList.toggle('active', view === 'queue');
 
-  if (view === 'volunteer') {
-    if (volunteerCard) volunteerCard.classList.remove('hidden');
-    if (homeBtn) homeBtn.classList.add('hidden');
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    return;
-  }
+  if (homeBtn) homeBtn.classList.toggle('hidden', view === 'volunteer');
 
-  if (view === 'admin') {
-    if (adminPanel) adminPanel.classList.remove('hidden');
-    if (homeBtn) homeBtn.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    return;
-  }
-
-  if (view === 'queue') {
-    if (queueCard) queueCard.classList.remove('hidden');
-    if (homeBtn) homeBtn.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }
+  window.scrollTo({top: 0, behavior: 'auto'});
 }
 
-function syncAppViewForSpecialModes() {
-  if (isQueueMode()) {
-    const nav = document.getElementById('appHomeNav');
-    if (nav) nav.classList.add('hidden');
-    const homeBtn = document.getElementById('floatingHomeBtn');
-    if (homeBtn) homeBtn.classList.add('hidden');
-    return;
-  }
-  const nav = document.getElementById('appHomeNav');
-  if (nav) nav.classList.remove('hidden');
-  setAppView(currentAppView || 'volunteer');
+function applyInitialAppView() {
+  setAppView((isQueueMode && isQueueMode()) ? 'queue' : (currentAppView || 'volunteer'));
 }
 
 </script>
