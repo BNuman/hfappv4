@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Humanity First Sverige – Version B</title>
+  <title>Digital kö – Humanity First Sverige – Version B</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
@@ -146,6 +146,18 @@
     .ux-top-btn.active{background:#2E7D4F;color:#fff;box-shadow:0 8px 18px rgba(46,125,79,.18)}
     .ux-top-sub{font-size:13px;color:#64748b;font-weight:700;margin:-4px 0 14px}
 
+  
+    .turn-banner{display:none;margin:10px 0 14px;padding:16px;border-radius:16px;font-weight:900;line-height:1.4;text-align:center;border:2px solid transparent}
+    .turn-banner.show{display:block}
+    .turn-banner.wait{background:#f5f6f8;color:#475569;border-color:#dbe2ea}
+    .turn-banner.soon{background:#fff7e6;color:#9a6700;border-color:#f2cf75}
+    .turn-banner.now{background:#e8f5ee;color:#1f7a3e;border-color:#2E7D4F;font-size:18px}
+    .current-next-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+    .current-next-box{padding:12px;border-radius:16px;background:#f8faf9;border:2px solid #d7eadc}
+    .current-next-label{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#64748b}
+    .current-next-value{font-size:28px;font-weight:900;line-height:1;color:#2E7D4F;margin-top:8px}
+    .brand-pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#e8f5ee;color:#2E7D4F;font-size:12px;font-weight:900;margin-top:8px}
+
   </style>
 </head>
 <body>
@@ -154,7 +166,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.41 – UX labels polish</div>
+    <div class="version">Version D12.0 – production ready polish</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -195,6 +207,7 @@
       <input type="text" id="queueNameInput" placeholder="Skriv ditt namn om du vill" maxlength="50">
     </div>
     <div class="queue-note">Du behåller din plats i kön även om du väntar här. Du behöver inte trycka igen.</div>
+    <div id="queueTurnBanner" class="turn-banner wait"></div>
     <div id="queueTurnNotice" class="status-msg" style="font-weight:900;"></div>
     <div id="queuePublicStatus" class="status-msg"></div>
     <button class="submit-btn" type="button" id="queueJoinBtn" onclick="joinQueue()">Gå med i kön</button>
@@ -342,6 +355,16 @@
         <div class="current-number-box" id="currentNumberBox">
           <div class="section-label" style="margin-bottom:4px;">Aktuellt upprop</div>
           <div class="current-number-value" id="currentNumberDisplay">-</div>
+          <div class="current-next-grid">
+            <div class="current-next-box">
+              <div class="current-next-label">Aktuellt nummer</div>
+              <div class="current-next-value" id="currentNumberMirror">-</div>
+            </div>
+            <div class="current-next-box">
+              <div class="current-next-label">Nästa nummer</div>
+              <div class="current-next-value" id="nextNumberDisplay">-</div>
+            </div>
+          </div>
           <div class="current-number-sub" id="currentNumberSub">Här ser ni vilket nummer ni ropar upp just nu.</div>
 
           <div class="action-group">
@@ -458,6 +481,29 @@ function getCurrentQueueNumber(queueId) {
   const session = queueSessionsCache.find(q => q.id === queueId);
   return session?.current_called_number != null ? String(session.current_called_number) : '';
 }
+
+function getNextQueueNumber(queueId) {
+  const rows = getQueueEntriesForSession(queueId)
+    .filter(r => r.status === 'assigned' && r.queue_number != null)
+    .slice()
+    .sort((a, b) => Number(a.queue_number) - Number(b.queue_number));
+
+  if (!rows.length) return '';
+  const current = getCurrentQueueNumber(queueId);
+  if (!current) return String(rows[0].queue_number);
+  const bigger = rows.find(r => Number(r.queue_number) > Number(current));
+  return bigger ? String(bigger.queue_number) : '';
+}
+
+function updateAdminCurrentNext(queueId) {
+  const current = getCurrentQueueNumber(queueId) || '-';
+  const next = getNextQueueNumber(queueId) || '-';
+  const a = document.getElementById('currentNumberMirror');
+  const b = document.getElementById('nextNumberDisplay');
+  if (a) a.textContent = current;
+  if (b) b.textContent = next;
+}
+
 async function setCurrentQueueNumber() {
   const queueId = document.getElementById('adminQueueSelect')?.value;
   if (!queueId) { alert('Välj en kö först.'); return; }
@@ -556,7 +602,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.41 – UX labels polish<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D12.0 – production ready polish<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -584,6 +630,10 @@ const QUEUE_I18N = {
     current_call_none: 'Inget nummer ropas upp just nu.',
     turn_now: 'Nu är det din tur',
     turn_soon: 'Det är snart din tur',
+    turn_wait: 'Vänta på ditt nummer',
+    turn_soon_banner: 'Det är snart din tur',
+    turn_now_banner: 'Nu är det din tur',
+    turn_wait_banner: 'Du står i kön. Vi visar här när det börjar bli din tur.',
     current_call_prefix: 'Vi ropar upp nummer',
     got_number_title: 'Du har fått ett könummer',
     got_number_text: 'Du har redan fått ditt könummer. Matutdelningen börjar snart och vi kommer ropa upp ditt nummer, så håll koll och vänta på din tur.'
@@ -592,7 +642,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D11.41 – UX labels polish<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D12.0 – production ready polish<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -620,6 +670,10 @@ const QUEUE_I18N = {
     current_call_none: 'No number is being called right now.',
     turn_now: 'It is your turn now',
     turn_soon: 'It will be your turn soon',
+    turn_wait: 'Wait for your number',
+    turn_soon_banner: 'It will be your turn soon',
+    turn_now_banner: 'It is your turn now',
+    turn_wait_banner: 'You are in the queue. We will show here when your turn is getting close.',
     current_call_prefix: 'We are calling number',
     got_number_title: 'You have received a queue number',
     got_number_text: 'You already have your queue number. Food distribution starts soon and we will call your number, so please stay alert and wait for your turn.'
@@ -658,6 +712,10 @@ const QUEUE_I18N = {
     current_call_none: 'No se está llamando a ningún número ahora mismo.',
     turn_now: 'Ahora es tu turno',
     turn_soon: 'Pronto será tu turno',
+    turn_wait: 'Espera tu número',
+    turn_soon_banner: 'Pronto será tu turno',
+    turn_now_banner: 'Ahora es tu turno',
+    turn_wait_banner: 'Estás en la fila. Aquí mostraremos cuando se acerque tu turno.',
     current_call_prefix: 'Estamos llamando al número',
     got_number_title: 'Has recibido un número de fila',
     got_number_text: 'Ya tienes tu número de fila. La distribución de comida empezará pronto y llamaremos tu número, así que mantente atento y espera tu turno.'
@@ -696,6 +754,10 @@ const QUEUE_I18N = {
     current_call_none: 'لا يتم نداء أي رقم الآن.',
     turn_now: 'الآن جاء دورك',
     turn_soon: 'سيأتي دورك قريباً',
+    turn_wait: 'انتظر دورك',
+    turn_soon_banner: 'سيأتي دورك قريباً',
+    turn_now_banner: 'الآن جاء دورك',
+    turn_wait_banner: 'أنت في الطابور. سنعرض هنا عندما يقترب دورك.',
     current_call_prefix: 'نحن ننادي الرقم',
     got_number_title: 'لقد حصلت على رقم',
     got_number_text: 'لديك رقمك بالفعل. سيبدأ توزيع الطعام قريباً وسننادي رقمك، لذا انتبه وانتظر دورك.'
@@ -734,6 +796,10 @@ const QUEUE_I18N = {
     current_call_none: 'Зараз не викликають жодного номера.',
     turn_now: 'Зараз ваша черга',
     turn_soon: 'Скоро буде ваша черга',
+    turn_wait: 'Чекайте свого номера',
+    turn_soon_banner: 'Скоро буде ваша черга',
+    turn_now_banner: 'Зараз ваша черга',
+    turn_wait_banner: 'Ви в черзі. Тут буде видно, коли ваша черга наближається.',
     current_call_prefix: 'Зараз викликають номер',
     got_number_title: 'Ви отримали номер черги',
     got_number_text: 'У вас уже є номер черги. Роздача їжі скоро почнеться, і ми оголосимо ваш номер, тож, будь ласка, стежте та чекайте своєї черги.'
@@ -797,33 +863,38 @@ function updatePublicCalledNumber() {
 
 function updateUserTurnNotification(entry) {
   const noticeEl = document.getElementById('queueTurnNotice');
-  if (!noticeEl) return;
-
-  if (!entry || entry.queue_number == null) {
+  const bannerEl = document.getElementById('queueTurnBanner');
+  if (noticeEl) {
     noticeEl.textContent = '';
     noticeEl.className = 'status-msg';
+  }
+  if (!bannerEl) return;
+
+  if (!entry || entry.queue_number == null) {
+    bannerEl.textContent = '';
+    bannerEl.className = 'turn-banner';
     return;
   }
 
   const queueId = getQueueIdFromUrl();
   const current = getCurrentQueueNumber(queueId);
   if (!current) {
-    noticeEl.textContent = '';
-    noticeEl.className = 'status-msg';
+    bannerEl.textContent = tQueue('turn_wait_banner');
+    bannerEl.className = 'turn-banner show wait';
     return;
   }
 
   const diff = Number(entry.queue_number) - Number(current);
 
   if (diff === 0) {
-    noticeEl.textContent = tQueue('turn_now') + '!';
-    noticeEl.className = 'status-msg show ok';
+    bannerEl.textContent = '🟢 ' + tQueue('turn_now_banner');
+    bannerEl.className = 'turn-banner show now';
   } else if (diff > 0 && diff <= 3) {
-    noticeEl.textContent = tQueue('turn_soon');
-    noticeEl.className = 'status-msg show ok';
+    bannerEl.textContent = '🟡 ' + tQueue('turn_soon_banner');
+    bannerEl.className = 'turn-banner show soon';
   } else {
-    noticeEl.textContent = '';
-    noticeEl.className = 'status-msg';
+    bannerEl.textContent = tQueue('turn_wait_banner');
+    bannerEl.className = 'turn-banner show wait';
   }
 }
 
@@ -1950,7 +2021,11 @@ function renderQueueAdminPanel() {
     list.innerHTML = '<div class="empty-state">Ingen kö vald.</div>';
     const currentNumberDisplay = document.getElementById('currentNumberDisplay');
     const currentNumberSub = document.getElementById('currentNumberSub');
+    const currentNumberMirror = document.getElementById('currentNumberMirror');
+    const nextNumberDisplay = document.getElementById('nextNumberDisplay');
     if (currentNumberDisplay) currentNumberDisplay.textContent = '-';
+    if (currentNumberMirror) currentNumberMirror.textContent = '-';
+    if (nextNumberDisplay) nextNumberDisplay.textContent = '-';
     if (currentNumberSub) currentNumberSub.textContent = 'Välj en kö för att hålla koll på aktuellt nummer.';
     linkWrap.classList.add('hidden');
     return;
@@ -1958,6 +2033,7 @@ function renderQueueAdminPanel() {
 
   const session = queueSessionsCache.find(q => q.id === queueId);
   const rows = getQueueEntriesForSession(queueId);
+  updateAdminCurrentNext(queueId);
   updateCurrentNumberDisplay();
   const waiting = rows.filter(r => r.status === 'waiting').length;
   const assigned = rows.filter(r => r.status === 'assigned').length;
