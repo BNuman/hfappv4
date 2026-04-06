@@ -140,19 +140,36 @@
     .called-number-value{font-size:34px;font-weight:900;line-height:1;color:#2E7D4F;margin-top:6px}
     .called-number-sub{font-size:13px;font-weight:700;color:#64748b;margin-top:8px;line-height:1.45}
 
+  
+    .view-mode-nav{display:flex;gap:8px;margin:0 0 14px;position:sticky;top:0;z-index:20;background:#fff;padding:8px 0}
+    .view-mode-btn{flex:1;border:none;border-radius:14px;padding:12px 10px;font-size:14px;font-weight:900;font-family:'Nunito',sans-serif;background:#eef3f0;color:#2f3b34;cursor:pointer}
+    .view-mode-btn.active{background:#2E7D4F;color:#fff;box-shadow:0 8px 18px rgba(46,125,79,.18)}
+    .screen-title{font-size:22px;font-weight:900;margin:0 0 12px}
+    .screen-sub{font-size:13px;color:#64748b;font-weight:700;margin:-4px 0 12px}
+    .floating-home-btn{position:fixed;right:14px;bottom:14px;z-index:30;border:none;border-radius:999px;padding:12px 14px;background:#2E7D4F;color:#fff;font-weight:900;font-family:'Nunito',sans-serif;box-shadow:0 10px 22px rgba(46,125,79,.22);cursor:pointer}
+
   </style>
 </head>
 <body>
+
+  <div id="appHomeNav" class="view-mode-nav">
+    <button class="view-mode-btn active" id="viewBtnVolunteer" type="button" onclick="setAppView('volunteer')">Volontär</button>
+    <button class="view-mode-btn" id="viewBtnAdmin" type="button" onclick="setAppView('admin')">Admin</button>
+    <button class="view-mode-btn" id="viewBtnQueue" type="button" onclick="setAppView('queue')">Digital kö</button>
+  </div>
+
 <div class="container">
   <div class="logo-area">
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.19 – digital kö</div>
+    <div class="version">Version D11.21 – UX refactor</div>
   </div>
 
   
   <div class="card hidden" id="queueCard">
+    <div class="screen-title" id="queuePublicTitleBig">Digital kö</div>
+    <div class="screen-sub" id="queuePublicSub">Se kön, välj språk och ställ dig i kö.</div>
     <div class="section-label hidden" id="queueSectionLabel">Digital kö</div>
     <div class="section-label" id="queueLanguageLabel" style="margin-top:4px;margin-bottom:8px;text-align:center;">Välj språk</div>
     <div class="lang-bar" id="queueLangBar">
@@ -191,6 +208,8 @@
 
   <div class="card">
     <div id="mainForm">
+      <div class="screen-title">Volontär</div>
+      <div class="screen-sub">Anmäl dig till matutdelning eller hämtning.</div>
       <div class="helper-box">
         <div class="helper-title" id="queueHelperTitle">Så gör du</div>
         1. Fyll i ditt namn<br>
@@ -382,8 +401,8 @@
 </div>
 
 <script>
-const SUPABASE_URL = 'https://puhdwdkkwqspqyoaodgx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aGR3ZGtrd3FzcHF5b2FvZGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NjYwMjYsImV4cCI6MjA5MTA0MjAyNn0.GF29cQT0nAIyqBn3g31GgUZIOlML8IJ-2_7FlYNIFuE';
+const SUPABASE_URL = 'https://azmvdeynrqaldlqsmwkt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bXZkZXlucnFhbGRscXNtd2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNjAxODYsImV4cCI6MjA5MDczNjE4Nn0.GTKzntDmk4bV1bomnzPPr3Xs0IuwqjuoIv7XSvi3F9M';
 const ADMIN_SESSION_KEY = 'hf_admin_session_v3';
 const VOLUNTEER_NAME_KEY = 'hf_volunteer_name_v3';
 const QUEUE_ENTRY_KEY = 'hf_queue_entry_map_v4';
@@ -544,7 +563,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.19 – digital kö',
+    page_version: 'Version D11.21 – UX refactor',
     howto_title: 'Så gör du',
     howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
@@ -2197,7 +2216,8 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  document.querySelector('.card:not(#queueCard)').classList.add('hidden');
+  const volunteerCard = getVolunteerContainer();
+  if (volunteerCard) volunteerCard.classList.add('hidden');
   document.querySelectorAll('.admin-row').forEach(x => x.classList.add('hidden'));
   document.getElementById('adminPanel').classList.add('hidden');
   document.getElementById('queueCard').classList.remove('hidden');
@@ -2319,6 +2339,7 @@ async function init() {
     refreshSignupButton();
     restoreAdminSession();
     applyQueueLanguageStatic();
+    syncAppViewForSpecialModes();
     updateCurrentNumberDisplay();
     if (isQueueMode()) {
       renderQueueView();
@@ -2331,7 +2352,69 @@ async function init() {
     document.getElementById('eventsList').innerHTML = '<div class="empty-state">Kunde inte ladda data.<br>' + escapeHtml(err.message) + '</div>';
   }
 }
+syncAppViewForSpecialModes();
 init();
+
+let currentAppView = localStorage.getItem('hf_app_view_v1') || 'volunteer';
+
+function getVolunteerContainer() {
+  const mainForm = document.getElementById('mainForm');
+  return mainForm ? mainForm.closest('.card') : null;
+}
+function setAppView(view) {
+  currentAppView = view;
+  localStorage.setItem('hf_app_view_v1', view);
+
+  const volunteerCard = getVolunteerContainer();
+  const adminPanel = document.getElementById('adminPanel');
+  const queueCard = document.getElementById('queueCard');
+  const nav = document.getElementById('appHomeNav');
+  const homeBtn = document.getElementById('floatingHomeBtn');
+
+  if (volunteerCard) volunteerCard.classList.add('hidden');
+  if (adminPanel) adminPanel.classList.add('hidden');
+  if (queueCard && !isQueueMode()) queueCard.classList.add('hidden');
+
+  document.getElementById('viewBtnVolunteer')?.classList.toggle('active', view === 'volunteer');
+  document.getElementById('viewBtnAdmin')?.classList.toggle('active', view === 'admin');
+  document.getElementById('viewBtnQueue')?.classList.toggle('active', view === 'queue');
+
+  if (view === 'volunteer') {
+    if (volunteerCard) volunteerCard.classList.remove('hidden');
+    if (homeBtn) homeBtn.classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
+
+  if (view === 'admin') {
+    if (adminPanel) adminPanel.classList.remove('hidden');
+    if (homeBtn) homeBtn.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
+
+  if (view === 'queue') {
+    if (queueCard) queueCard.classList.remove('hidden');
+    if (homeBtn) homeBtn.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+}
+
+function syncAppViewForSpecialModes() {
+  if (isQueueMode()) {
+    const nav = document.getElementById('appHomeNav');
+    if (nav) nav.classList.add('hidden');
+    const homeBtn = document.getElementById('floatingHomeBtn');
+    if (homeBtn) homeBtn.classList.add('hidden');
+    return;
+  }
+  const nav = document.getElementById('appHomeNav');
+  if (nav) nav.classList.remove('hidden');
+  setAppView(currentAppView || 'volunteer');
+}
+
 </script>
+
+<button id="floatingHomeBtn" class="floating-home-btn hidden" type="button" onclick="setAppView('volunteer')">Till startsidan</button>
 </body>
 </html>
