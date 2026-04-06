@@ -148,7 +148,7 @@
     .screen-sub{font-size:13px;color:#64748b;font-weight:700;margin:0 0 12px}
     .floating-home-btn{position:fixed;right:14px;bottom:14px;z-index:30;border:none;border-radius:999px;padding:12px 14px;background:#2E7D4F;color:#fff;font-weight:900;font-family:'Nunito',sans-serif;box-shadow:0 10px 22px rgba(46,125,79,.22);cursor:pointer}
 
-  </style>
+</style>
 </head>
 <body>
 
@@ -238,7 +238,7 @@
   </div>
 
   
-  <div class="admin-row"><span class="admin-link" onclick="toggleCancel()">❌ Avanmäl / avboka</span></div>
+  <div class="admin-row" id="cancelEntryRow"><span class="admin-link" onclick="toggleCancel()">❌ Avanmäl / avboka</span></div>
 
   <div class="card hidden" id="cancelCard">
     <div class="section-label">Avanmäl / avboka</div>
@@ -1694,7 +1694,7 @@ function renderCreatePickupOptions() {
 
 function toggleAdmin() {
   setAppView('admin');
-  document.getElementById('adminPanel').classList.toggle('show');
+  document.getElementById('adminPanel').classList.add('show');
 }
 async function doLogin() {
   const email = document.getElementById('adminEmailInput').value.trim();
@@ -2219,10 +2219,12 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  setDisplay(document.getElementById('volunteerCard'), false);
-  setDisplay(document.getElementById('adminPanel'), false);
-  setDisplay(document.getElementById('adminEntryRow'), false);
-  setDisplay(document.getElementById('queueCard'), true);
+  setDisplayById('volunteerCard', false);
+  setDisplayById('cancelEntryRow', false);
+  setDisplayById('cancelCard', false);
+  setDisplayById('adminEntryRow', false);
+  setDisplayById('adminPanel', false);
+  setDisplayById('queueCard', true);
   startQueuePolling();
 
   const title = document.getElementById('queueTitle');
@@ -2356,49 +2358,68 @@ async function init() {
 init();
 applyInitialAppView();
 
-let currentAppView = localStorage.getItem('hf_app_view_v2') || 'volunteer';
+let currentAppView = localStorage.getItem('hf_app_view_v3') || 'volunteer';
 
-function setDisplay(el, show) {
+function setDisplayById(id, show) {
+  const el = document.getElementById(id);
   if (!el) return;
   el.style.display = show ? '' : 'none';
 }
-
-function setAppView(view) {
-  currentAppView = view;
-  localStorage.setItem('hf_app_view_v2', view);
-
-  const volunteerCard = document.getElementById('volunteerCard');
-  const adminPanel = document.getElementById('adminPanel');
-  const adminEntryRow = document.getElementById('adminEntryRow');
-  const queueCard = document.getElementById('queueCard');
-  const homeBtn = document.getElementById('floatingHomeBtn');
-
-  // Public queue via link should stay isolated
-  if (isQueueMode && isQueueMode()) {
-    setDisplay(volunteerCard, false);
-    setDisplay(adminPanel, false);
-    setDisplay(adminEntryRow, false);
-    setDisplay(queueCard, true);
-    if (homeBtn) homeBtn.classList.add('hidden');
-    return;
-  }
-
-  setDisplay(volunteerCard, view === 'volunteer');
-  setDisplay(adminPanel, view === 'admin');
-  setDisplay(adminEntryRow, view === 'admin');
-  setDisplay(queueCard, view === 'queue');
-
+function updateViewButtons(view) {
   document.getElementById('viewBtnVolunteer')?.classList.toggle('active', view === 'volunteer');
   document.getElementById('viewBtnAdmin')?.classList.toggle('active', view === 'admin');
   document.getElementById('viewBtnQueue')?.classList.toggle('active', view === 'queue');
+}
+function setAppView(view) {
+  currentAppView = view;
+  localStorage.setItem('hf_app_view_v3', view);
 
-  if (homeBtn) homeBtn.classList.toggle('hidden', view === 'volunteer');
+  // QR/public queue mode must stay isolated
+  if (typeof isQueueMode === 'function' && isQueueMode()) {
+    setDisplayById('volunteerCard', false);
+    setDisplayById('cancelEntryRow', false);
+    setDisplayById('cancelCard', false);
+    setDisplayById('adminEntryRow', false);
+    setDisplayById('adminPanel', false);
+    setDisplayById('queueCard', true);
+    document.getElementById('appHomeNav')?.classList.add('hidden');
+    document.getElementById('floatingHomeBtn')?.classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('appHomeNav')?.classList.remove('hidden');
+  updateViewButtons(view);
+
+  // hide everything first
+  setDisplayById('volunteerCard', false);
+  setDisplayById('cancelEntryRow', false);
+  setDisplayById('cancelCard', false);
+  setDisplayById('adminEntryRow', false);
+  setDisplayById('adminPanel', false);
+  setDisplayById('queueCard', false);
+
+  if (view === 'volunteer') {
+    setDisplayById('volunteerCard', true);
+    setDisplayById('cancelEntryRow', true);
+    setDisplayById('cancelCard', false);
+    document.getElementById('floatingHomeBtn')?.classList.add('hidden');
+  } else if (view === 'admin') {
+    setDisplayById('adminEntryRow', true);
+    setDisplayById('adminPanel', true);
+    document.getElementById('floatingHomeBtn')?.classList.remove('hidden');
+  } else if (view === 'queue') {
+    setDisplayById('queueCard', true);
+    document.getElementById('floatingHomeBtn')?.classList.remove('hidden');
+  }
 
   window.scrollTo({top: 0, behavior: 'auto'});
 }
-
 function applyInitialAppView() {
-  setAppView((isQueueMode && isQueueMode()) ? 'queue' : (currentAppView || 'volunteer'));
+  if (typeof isQueueMode === 'function' && isQueueMode()) {
+    setAppView('queue');
+  } else {
+    setAppView(currentAppView || 'volunteer');
+  }
 }
 
 </script>
