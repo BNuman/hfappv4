@@ -183,7 +183,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D12.5 – final clean</div>
+    <div class="version">Version D12.6 – queue join fix</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -615,9 +615,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D12.5 – final clean',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D12.6 – queue join fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -655,9 +653,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D12.5 – final clean',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D12.6 – queue join fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2228,16 +2224,14 @@ async function joinQueue() {
   const name = document.getElementById('queueNameInput')?.value?.trim() || '';
 
   if (!session) {
-    statusEl.textContent = 'Kön kunde inte hittas.';
-    statusEl.className = 'status-msg show err';
+    if (statusEl) {
+      statusEl.textContent = 'Kön kunde inte hittas.';
+      statusEl.className = 'status-msg show err';
+    }
     return;
   }
-  if (!session.queue_open) {
-    return;
-  }
-  if (isJoiningQueue) return;
+  if (!session.queue_open || isJoiningQueue) return;
 
-  // Stoppa bara dubbla registreringar från samma enhet / samma person som redan gått med på denna mobil.
   const existingLocalEntryId = getQueueEntry(queueId);
   const existingLocalEntry = queueEntriesCache.find(q =>
     q.id === existingLocalEntryId &&
@@ -2246,6 +2240,7 @@ async function joinQueue() {
   );
   if (existingLocalEntry) {
     await reloadAll();
+    renderQueueView();
     return;
   }
 
@@ -2263,12 +2258,16 @@ async function joinQueue() {
         status: 'waiting'
       }])
     });
+
     const created = Array.isArray(rows) ? rows[0] : rows;
     if (created?.id) setQueueEntry(queueId, created.id);
     await reloadAll();
+    renderQueueView();
   } catch (err) {
-    statusEl.textContent = 'Kunde inte ställa dig i kön: ' + err.message;
-    statusEl.className = 'status-msg show err';
+    if (statusEl) {
+      statusEl.textContent = 'Kunde inte ställa dig i kön: ' + err.message;
+      statusEl.className = 'status-msg show err';
+    }
   } finally {
     isJoiningQueue = false;
     if (joinBtn) joinBtn.disabled = false;
@@ -2293,10 +2292,11 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  document.querySelector('.card:not(#queueCard)').classList.add('hidden');
+  const firstCard = document.querySelector('.card:not(#queueCard)');
+  if (firstCard) firstCard.classList.add('hidden');
   document.querySelectorAll('.admin-row').forEach(x => x.classList.add('hidden'));
-  document.getElementById('adminPanel').classList.add('hidden');
-  document.getElementById('queueCard').classList.remove('hidden');
+  document.getElementById('adminPanel')?.classList.add('hidden');
+  document.getElementById('queueCard')?.classList.remove('hidden');
   startQueuePolling();
 
   const title = document.getElementById('queueTitle');
@@ -2306,50 +2306,64 @@ function renderQueueView() {
   const nameWrap = document.getElementById('queueNameWrap');
   const joinBtn = document.getElementById('queueJoinBtn');
   const publicStatus = document.getElementById('queuePublicStatus');
+  const helperTitleEl = document.getElementById('queueHelperTitle');
+  const helperTextEl = document.getElementById('queueHelperText');
 
   applyQueueLanguageStatic();
   updatePublicCalledNumber();
   updateUserTurnNotification(entry);
-  publicStatus.textContent = '';
-  publicStatus.className = 'status-msg';
+  if (publicStatus) {
+    publicStatus.textContent = '';
+    publicStatus.className = 'status-msg';
+  }
 
   if (!session) {
-    title.textContent = tQueue('queue_label');
-    status.textContent = tQueue('not_found');
-    big.classList.add('hidden');
-    leaveBtn.classList.add('hidden');
+    if (title) title.textContent = tQueue('queue_label');
+    if (status) status.textContent = tQueue('not_found');
+    if (big) big.classList.add('hidden');
+    if (leaveBtn) leaveBtn.classList.add('hidden');
     if (joinBtn) joinBtn.classList.add('hidden');
     updatePublicCalledNumber();
     updateUserTurnNotification(entry);
     return;
   }
 
-  title.textContent = translateQueueTitle(session.title) + (session.date ? ' · ' + session.date : '');
+  if (title) title.textContent = translateQueueTitle(session.title) + (session.date ? ' · ' + session.date : '');
 
   if (!entry) {
-    big.classList.add('hidden');
-    leaveBtn.classList.add('hidden');
-    nameWrap.classList.remove('hidden');
+    if (big) big.classList.add('hidden');
+    if (leaveBtn) leaveBtn.classList.add('hidden');
+    if (nameWrap) nameWrap.classList.remove('hidden');
     if (joinBtn) {
       joinBtn.classList.remove('hidden');
       joinBtn.disabled = !session.queue_open;
       joinBtn.textContent = session.queue_open ? tQueue('join') : tQueue('queue_soon');
     }
-    status.textContent = session.queue_open
-      ? tQueue('wait_msg')
-      : tQueue('closed_msg');
+    if (helperTitleEl) {
+      helperTitleEl.dataset.state = 'default';
+      helperTitleEl.textContent = tQueue('howto_title');
+    }
+    if (helperTextEl) {
+      helperTextEl.innerHTML = tQueue('howto_steps');
+    }
+    if (status) status.textContent = session.queue_open ? tQueue('wait_msg') : tQueue('closed_msg');
     updatePublicCalledNumber();
-    updateUserTurnNotification(entry);
+    updateUserTurnNotification(null);
     return;
   }
 
-  nameWrap.classList.add('hidden');
-  leaveBtn.classList.remove('hidden');
+  if (nameWrap) nameWrap.classList.add('hidden');
+  if (leaveBtn) leaveBtn.classList.remove('hidden');
 
   if (entry.status === 'left') {
-    status.textContent = tQueue('left_status');
-    big.classList.add('hidden');
-    leaveBtn.classList.add('hidden');
+    if (helperTitleEl) {
+      helperTitleEl.dataset.state = 'left';
+      helperTitleEl.textContent = tQueue('left_title');
+    }
+    if (helperTextEl) helperTextEl.innerHTML = tQueue('left_text');
+    if (status) status.textContent = tQueue('left_status');
+    if (big) big.classList.add('hidden');
+    if (leaveBtn) leaveBtn.classList.add('hidden');
     if (joinBtn) joinBtn.classList.add('hidden');
     updatePublicCalledNumber();
     updateUserTurnNotification(entry);
@@ -2357,21 +2371,29 @@ function renderQueueView() {
   }
 
   if (entry.queue_number != null) {
-    const helperTitleEl = document.getElementById('queueHelperTitle');
-    const helperTextEl = document.getElementById('queueHelperText');
-    if (helperTitleEl) helperTitleEl.textContent = tQueue('got_number_title');
+    if (helperTitleEl) {
+      helperTitleEl.dataset.state = 'assigned';
+      helperTitleEl.textContent = tQueue('got_number_title');
+    }
     if (helperTextEl) helperTextEl.innerHTML = tQueue('got_number_text');
-    status.textContent = tQueue('queue_number');
-    big.textContent = entry.queue_number;
-    big.classList.remove('hidden');
+    if (status) status.textContent = tQueue('queue_number');
+    if (big) {
+      big.textContent = entry.queue_number;
+      big.classList.remove('hidden');
+    }
     if (joinBtn) joinBtn.classList.add('hidden');
     updatePublicCalledNumber();
     updateUserTurnNotification(entry);
     return;
   }
 
-  status.textContent = tQueue('waiting_status');
-  big.classList.add('hidden');
+  if (helperTitleEl) {
+    helperTitleEl.dataset.state = 'waiting';
+    helperTitleEl.textContent = tQueue('already_title');
+  }
+  if (helperTextEl) helperTextEl.innerHTML = tQueue('already_text');
+  if (status) status.textContent = tQueue('waiting_status');
+  if (big) big.classList.add('hidden');
   if (joinBtn) joinBtn.classList.add('hidden');
   updatePublicCalledNumber();
   updateUserTurnNotification(entry);
