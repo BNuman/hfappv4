@@ -154,14 +154,15 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.40 – enkel UX-nav</div>
+    <div class="version">Version D11.41 – UX labels polish</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
     <button class="ux-top-btn" id="uxBtnAdmin" type="button" onclick="showAdminDashboard()">Admin</button>
-    <button class="ux-top-btn" id="uxBtnQueue" type="button" onclick="showQueueDashboard()">Digital kö</button>
+    <button class="ux-top-btn" id="uxBtnQueue" type="button" onclick="showQueueDashboard()">Köhantering</button>
   </div>
   <div id="uxTopSub" class="ux-top-sub">Välj vilket läge du vill arbeta i.</div>
+<div id="currentViewTag" style="display:inline-block;padding:6px 10px;border-radius:10px;background:#e6f4ea;color:#2E7D4F;font-weight:800;font-size:12px;margin:-2px 0 12px;">Volontärläge</div>
 
   <div class="card hidden" id="queueCard">
     <div class="section-label hidden" id="queueSectionLabel">Digital kö</div>
@@ -555,7 +556,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.40 – enkel UX-nav<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D11.41 – UX labels polish<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -591,7 +592,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D11.40 – enkel UX-nav<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D11.41 – UX labels polish<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2340,6 +2341,18 @@ async function init() {
   }
 }
 
+function setViewTag(text) {
+  const el = document.getElementById('currentViewTag');
+  if (el) el.textContent = text;
+}
+
+function setTopCopy(title, sub) {
+  const h1 = document.getElementById('mainPageTitle');
+  const subEl = document.getElementById('uxTopSub');
+  if (h1) h1.textContent = title;
+  if (subEl) subEl.textContent = sub;
+}
+
 function setUxActive(which) {
   document.getElementById('uxBtnVolunteer')?.classList.toggle('active', which === 'volunteer');
   document.getElementById('uxBtnAdmin')?.classList.toggle('active', which === 'admin');
@@ -2360,6 +2373,8 @@ function showEl(id) {
 function showVolunteerView() {
   if (typeof isQueueMode === 'function' && isQueueMode()) return;
   setUxActive('volunteer');
+  setTopCopy('Volontär', 'Anmäl dig till matutdelning eller hämtning.');
+  setViewTag('Volontärläge');
   showEl('volunteerCard');
   showEl('cancelEntryRow');
   hideEl('cancelCard');
@@ -2372,6 +2387,8 @@ function showVolunteerView() {
 function showAdminDashboard() {
   if (typeof isQueueMode === 'function' && isQueueMode()) return;
   setUxActive('admin');
+  setTopCopy('Admin', 'Hantera aktiviteter och anmälningar.');
+  setViewTag('Adminläge');
   hideEl('volunteerCard');
   hideEl('cancelEntryRow');
   hideEl('cancelCard');
@@ -2387,6 +2404,8 @@ function showAdminDashboard() {
 function showQueueDashboard() {
   if (typeof isQueueMode === 'function' && isQueueMode()) return;
   setUxActive('queue');
+  setTopCopy('Köhantering', 'Hantera kö, upprop och sena ankomster.');
+  setViewTag('Admin – Digital kö');
   hideEl('volunteerCard');
   hideEl('cancelEntryRow');
   hideEl('cancelCard');
