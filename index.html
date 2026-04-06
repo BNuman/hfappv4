@@ -141,16 +141,39 @@
     .called-number-sub{font-size:13px;font-weight:700;color:#64748b;margin-top:8px;line-height:1.45}
 
   
-    .view-mode-nav{display:flex;gap:8px;margin:0 0 14px;position:sticky;top:0;z-index:30;background:#fff;padding:8px 0}
+    .view-mode-nav{display:flex;gap:8px;margin:0 0 14px;position:sticky;top:0;z-index:40;background:#fff;padding:8px 0}
     .view-mode-btn{flex:1;border:none;border-radius:14px;padding:12px 10px;font-size:14px;font-weight:900;font-family:'Nunito',sans-serif;background:#eef3f0;color:#2f3b34;cursor:pointer}
     .view-mode-btn.active{background:#2E7D4F;color:#fff;box-shadow:0 8px 18px rgba(46,125,79,.18)}
     .screen-title{font-size:22px;font-weight:900;margin:0 0 8px}
     .screen-sub{font-size:13px;color:#64748b;font-weight:700;margin:0 0 12px}
     .floating-home-btn{position:fixed;right:14px;bottom:14px;z-index:30;border:none;border-radius:999px;padding:12px 14px;background:#2E7D4F;color:#fff;font-weight:900;font-family:'Nunito',sans-serif;box-shadow:0 10px 22px rgba(46,125,79,.22);cursor:pointer}
 
-</style>
+    body[data-view="volunteer"] #adminEntryRow,
+    body[data-view="volunteer"] #adminPanel,
+    body[data-view="volunteer"] #queueCard{display:none !important;}
+
+    body[data-view="admin"] #volunteerCard,
+    body[data-view="admin"] #cancelEntryRow,
+    body[data-view="admin"] #cancelCard,
+    body[data-view="admin"] #queueCard{display:none !important;}
+
+    body[data-view="queue"] #volunteerCard,
+    body[data-view="queue"] #cancelEntryRow,
+    body[data-view="queue"] #cancelCard,
+    body[data-view="queue"] #adminEntryRow,
+    body[data-view="queue"] #adminPanel{display:none !important;}
+
+    body[data-view="admin"] #adminEntryRow,
+    body[data-view="admin"] #adminPanel{display:block !important;}
+
+    body[data-view="queue"] #queueCard{display:block !important;}
+
+    body[data-embedded-queue="true"] #appHomeNav,
+    body[data-embedded-queue="true"] #floatingHomeBtn{display:none !important;}
+
+  </style>
 </head>
-<body>
+<body data-view="volunteer">
 
 <div id="appHomeNav" class="view-mode-nav">
   <button class="view-mode-btn active" id="viewBtnVolunteer" type="button" onclick="setAppView('volunteer')">Volontär</button>
@@ -163,7 +186,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D11.21 – UX refactor</div>
+    <div class="version">Version D11.22 – UX refactor</div>
   </div>
 
   
@@ -565,7 +588,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D11.21 – UX refactor',
+    page_version: 'Version D11.22 – UX refactor',
     howto_title: 'Så gör du',
     howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
@@ -1448,6 +1471,7 @@ function resetForm() {
 
 
 function toggleCancel() {
+  setAppView('volunteer');
   const card = document.getElementById('cancelCard');
   card.classList.toggle('hidden');
   populateCancelSelect();
@@ -1694,7 +1718,6 @@ function renderCreatePickupOptions() {
 
 function toggleAdmin() {
   setAppView('admin');
-  document.getElementById('adminPanel').classList.add('show');
 }
 async function doLogin() {
   const email = document.getElementById('adminEmailInput').value.trim();
@@ -2219,12 +2242,10 @@ function renderQueueView() {
   const entryId = getQueueEntry(queueId);
   const entry = queueEntriesCache.find(q => q.id === entryId && q.queue_session_id === queueId);
 
-  setDisplayById('volunteerCard', false);
-  setDisplayById('cancelEntryRow', false);
-  setDisplayById('cancelCard', false);
-  setDisplayById('adminEntryRow', false);
-  setDisplayById('adminPanel', false);
-  setDisplayById('queueCard', true);
+  if (typeof isQueueMode === 'function' && isQueueMode()) {
+    document.body.setAttribute('data-embedded-queue', 'true');
+    document.body.setAttribute('data-view', 'queue');
+  }
   startQueuePolling();
 
   const title = document.getElementById('queueTitle');
@@ -2358,13 +2379,8 @@ async function init() {
 init();
 applyInitialAppView();
 
-let currentAppView = localStorage.getItem('hf_app_view_v3') || 'volunteer';
+let currentAppView = localStorage.getItem('hf_app_view_v4') || 'volunteer';
 
-function setDisplayById(id, show) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = show ? '' : 'none';
-}
 function updateViewButtons(view) {
   document.getElementById('viewBtnVolunteer')?.classList.toggle('active', view === 'volunteer');
   document.getElementById('viewBtnAdmin')?.classList.toggle('active', view === 'admin');
@@ -2372,52 +2388,21 @@ function updateViewButtons(view) {
 }
 function setAppView(view) {
   currentAppView = view;
-  localStorage.setItem('hf_app_view_v3', view);
-
-  // QR/public queue mode must stay isolated
-  if (typeof isQueueMode === 'function' && isQueueMode()) {
-    setDisplayById('volunteerCard', false);
-    setDisplayById('cancelEntryRow', false);
-    setDisplayById('cancelCard', false);
-    setDisplayById('adminEntryRow', false);
-    setDisplayById('adminPanel', false);
-    setDisplayById('queueCard', true);
-    document.getElementById('appHomeNav')?.classList.add('hidden');
-    document.getElementById('floatingHomeBtn')?.classList.add('hidden');
-    return;
-  }
-
-  document.getElementById('appHomeNav')?.classList.remove('hidden');
+  localStorage.setItem('hf_app_view_v4', view);
+  document.body.setAttribute('data-view', view);
   updateViewButtons(view);
-
-  // hide everything first
-  setDisplayById('volunteerCard', false);
-  setDisplayById('cancelEntryRow', false);
-  setDisplayById('cancelCard', false);
-  setDisplayById('adminEntryRow', false);
-  setDisplayById('adminPanel', false);
-  setDisplayById('queueCard', false);
-
-  if (view === 'volunteer') {
-    setDisplayById('volunteerCard', true);
-    setDisplayById('cancelEntryRow', true);
-    setDisplayById('cancelCard', false);
-    document.getElementById('floatingHomeBtn')?.classList.add('hidden');
-  } else if (view === 'admin') {
-    setDisplayById('adminEntryRow', true);
-    setDisplayById('adminPanel', true);
-    document.getElementById('floatingHomeBtn')?.classList.remove('hidden');
-  } else if (view === 'queue') {
-    setDisplayById('queueCard', true);
-    document.getElementById('floatingHomeBtn')?.classList.remove('hidden');
-  }
-
-  window.scrollTo({top: 0, behavior: 'auto'});
+  const homeBtn = document.getElementById('floatingHomeBtn');
+  if (homeBtn) homeBtn.classList.toggle('hidden', view === 'volunteer');
+  window.scrollTo({top:0, behavior:'auto'});
 }
 function applyInitialAppView() {
   if (typeof isQueueMode === 'function' && isQueueMode()) {
-    setAppView('queue');
+    document.body.setAttribute('data-embedded-queue', 'true');
+    document.body.setAttribute('data-view', 'queue');
+    const homeBtn = document.getElementById('floatingHomeBtn');
+    if (homeBtn) homeBtn.classList.add('hidden');
   } else {
+    document.body.removeAttribute('data-embedded-queue');
     setAppView(currentAppView || 'volunteer');
   }
 }
