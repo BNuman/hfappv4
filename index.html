@@ -167,6 +167,12 @@
     .called-number-box.public-big .called-number-value{font-size:46px}
     .called-number-box.public-big .called-number-sub{font-size:18px;font-weight:900;line-height:1.4}
 
+  
+    .queue-section-title{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#6b7280;margin:6px 0 10px}
+    body.queue-public-mode #uxTopNav,
+    body.queue-public-mode #uxTopSub,
+    body.queue-public-mode #currentViewTag{display:none !important;}
+
   </style>
 </head>
 <body>
@@ -177,7 +183,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D12.3 – public queue polished</div>
+    <div class="version">Version D12.4 – public queue final polish</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -208,6 +214,7 @@
       <div id="queueStatusText" style="font-size:14px;line-height:1.6;color:#4b5563;font-weight:700;">Laddar köinformation…</div>
       <div id="queueBigNumber" class="queue-big-number hidden">0</div>
     </div>
+    <div class="queue-section-title">Aktuellt upprop</div>
     <div class="called-number-box public-big" id="calledNumberBox" style="display:block;border-color:#2E7D4F;background:#eef8f1;">
       <div class="called-number-title" id="calledNumberTitle">Aktuellt upprop</div>
       <div class="called-number-value" id="calledNumberValue">-</div>
@@ -218,6 +225,7 @@
       <input type="text" id="queueNameInput" placeholder="Skriv ditt namn om du vill" maxlength="50">
     </div>
     <div class="queue-note">Du behåller din plats i kön även om du väntar här. Du behöver inte trycka igen.</div>
+    <div class="queue-section-title">Din status</div>
     <div id="queueTurnBanner" class="turn-banner big-public wait"></div>
     <div id="queueTurnNotice" class="status-msg" style="font-weight:900;"></div>
     <div id="queuePublicStatus" class="status-msg"></div>
@@ -613,9 +621,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D12.3 – public queue polished',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D12.4 – public queue final polish<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -647,15 +653,13 @@ const QUEUE_I18N = {
     turn_wait: 'Vänta på ditt nummer',
     turn_soon_banner: 'Det är snart din tur',
     turn_now_banner: 'Nu är det din tur',
-    turn_wait_banner: 'Du står i kön. Vi visar här när det börjar bli din tur.'
+    turn_wait_banner: 'Du står i kön och väntar på ditt nummer.'
   },
   en: {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D12.3 – public queue polished',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D12.4 – public queue final polish<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -687,7 +691,7 @@ const QUEUE_I18N = {
     turn_wait: 'Wait for your number',
     turn_soon_banner: 'It will be your turn soon',
     turn_now_banner: 'It is your turn now',
-    turn_wait_banner: 'You are in the queue. We will show here when your turn is getting close.'
+    turn_wait_banner: 'You are in the queue and waiting for your number.'
   },
   es: {
     queue_label: 'Fila digital',
@@ -727,7 +731,7 @@ const QUEUE_I18N = {
     turn_wait: 'Espera tu número',
     turn_soon_banner: 'Pronto será tu turno',
     turn_now_banner: 'Ahora es tu turno',
-    turn_wait_banner: 'Estás en la fila. Aquí mostraremos cuando se acerque tu turno.'
+    turn_wait_banner: 'Estás en la fila y esperando tu número.'
   },
   ar: {
     queue_label: 'الطابور الرقمي',
@@ -767,7 +771,7 @@ const QUEUE_I18N = {
     turn_wait: 'انتظر دورك',
     turn_soon_banner: 'سيأتي دورك قريباً',
     turn_now_banner: 'الآن جاء دورك',
-    turn_wait_banner: 'أنت في الطابور. سنعرض هنا عندما يقترب دورك.'
+    turn_wait_banner: 'أنت في الطابور وتنتظر رقمك.'
   },
   uk: {
     queue_label: 'Цифрова черга',
@@ -807,7 +811,7 @@ const QUEUE_I18N = {
     turn_wait: 'Чекайте свого номера',
     turn_soon_banner: 'Скоро буде ваша черга',
     turn_now_banner: 'Зараз ваша черга',
-    turn_wait_banner: 'Ви в черзі. Тут буде видно, коли ваша черга наближається.'
+    turn_wait_banner: 'Ви в черзі та очікуєте свій номер.'
   }
 };
 
@@ -871,14 +875,21 @@ function updateUserTurnNotification(entry) {
 
   bannerEl.className = 'turn-banner big-public';
 
-  if (!entry || entry.queue_number == null) {
+  if (!entry) {
     bannerEl.textContent = '';
     bannerEl.className = 'turn-banner big-public';
     return;
   }
 
+  if (entry.queue_number == null) {
+    bannerEl.textContent = tQueue('waiting_status');
+    bannerEl.className = 'turn-banner big-public show wait';
+    return;
+  }
+
   const queueId = (typeof getQueueIdFromUrl === 'function') ? getQueueIdFromUrl() : '';
   const current = (typeof getCurrentQueueNumber === 'function') ? getCurrentQueueNumber(queueId) : '';
+
   if (!current) {
     bannerEl.textContent = tQueue('turn_wait_banner');
     bannerEl.className = 'turn-banner big-public show wait';
@@ -2278,6 +2289,7 @@ async function leaveQueue() {
   await reloadAll();
 }
 function renderQueueView() {
+  document.body.classList.add('queue-public-mode');
   const queueId = getQueueIdFromUrl();
   const session = queueSessionsCache.find(q => q.id === queueId);
   const entryId = getQueueEntry(queueId);
@@ -2501,6 +2513,7 @@ function showQueueDashboard() {
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
+if (!(typeof isQueueMode === 'function' && isQueueMode())) { document.body.classList.remove('queue-public-mode'); }
 init();
 showVolunteerView();
 </script>
