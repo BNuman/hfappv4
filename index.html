@@ -173,6 +173,10 @@
     body.queue-public-mode #uxTopSub,
     body.queue-public-mode #currentViewTag{display:none !important;}
 
+  
+    .call-feedback{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;background:#E8F5EE;color:#2E7D4F;border:2px solid #2E7D4F;font-size:14px;font-weight:900;text-align:center}
+    .call-feedback.show{display:block}
+
   </style>
 </head>
 <body>
@@ -183,7 +187,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D12.9 – queue number + text fix</div>
+    <div class="version">Version D13.0 – call-next feedback</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -372,16 +376,13 @@
         <div class="current-number-box" id="currentNumberBox">
           <div class="section-label" style="margin-bottom:4px;">Aktuellt upprop</div>
           <div class="current-number-value" id="currentNumberDisplay">-</div>
-          <div class="current-next-grid">
-            <div class="current-next-box">
-              <div class="current-next-label">Aktuellt nummer</div>
-              <div class="current-next-value" id="currentNumberMirror">-</div>
-            </div>
+          <div class="current-next-grid" style="grid-template-columns:1fr;">
             <div class="current-next-box">
               <div class="current-next-label">Nästa nummer</div>
               <div class="current-next-value" id="nextNumberDisplay">-</div>
             </div>
           </div>
+          <div id="callNextFeedback" class="call-feedback"></div>
           <div class="current-number-sub" id="currentNumberSub">Här ser ni vilket nummer ni ropar upp just nu.</div>
 
           <div class="action-group">
@@ -515,11 +516,31 @@ function getNextQueueNumber(queueId) {
 function updateAdminCurrentNext(queueId) {
   const current = getCurrentQueueNumber(queueId) || '-';
   const next = getNextQueueNumber(queueId) || '-';
-  const a = document.getElementById('currentNumberMirror');
-  const b = document.getElementById('nextNumberDisplay');
-  if (a) a.textContent = current;
-  if (b) b.textContent = next;
+  const currentDisplay = document.getElementById('currentNumberDisplay');
+  const nextDisplay = document.getElementById('nextNumberDisplay');
+  if (currentDisplay) currentDisplay.textContent = current;
+  if (nextDisplay) nextDisplay.textContent = next;
 }
+
+let callNextButtonLock = false;
+
+function showCallNextFeedback(text) {
+  const el = document.getElementById('callNextFeedback');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => {
+    el.classList.remove('show');
+    el.textContent = '';
+  }, 1800);
+}
+
+function vibrateShort() {
+  try {
+    if (navigator.vibrate) navigator.vibrate(120);
+  } catch (e) {}
+}
+
 
 async function setCurrentQueueNumber() {
   const queueId = document.getElementById('adminQueueSelect')?.value;
@@ -619,9 +640,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D12.9 – queue number + text fix',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D13.0 – call-next feedback<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -656,9 +675,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D12.9 – queue number + text fix',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D13.0 – call-next feedback<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1022,6 +1039,7 @@ async function callNextNumber() {
     alert('Välj en kö först.');
     return;
   }
+  if (callNextButtonLock) return;
 
   const assigned = getQueueEntriesForSession(queueId)
     .filter(r => r.status === 'assigned' && r.queue_number != null)
@@ -1029,7 +1047,7 @@ async function callNextNumber() {
     .sort((a, b) => Number(a.queue_number) - Number(b.queue_number));
 
   if (!assigned.length) {
-    alert('Det finns inga utdelade köplatser ännu.');
+    showCallNextFeedback('Inga fler i kön.');
     return;
   }
 
@@ -1045,11 +1063,21 @@ async function callNextNumber() {
   }
 
   if (nextNumber === null) {
-    alert('Det finns inget högre nummer att ropa upp.');
+    showCallNextFeedback('Inga fler i kön.');
     return;
   }
 
+  const btn = document.getElementById('callNextBtn') || document.querySelector('[onclick="callNextNumber()"]');
+
   try {
+    callNextButtonLock = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.dataset.originalText = btn.textContent;
+      btn.textContent = 'Uppdaterar...';
+      btn.style.opacity = '0.75';
+    }
+
     await api('/rest/v1/queue_sessions?id=eq.' + encodeURIComponent(queueId), {
       method: 'PATCH',
       headers: getHeaders(true, 'return=minimal'),
@@ -1057,8 +1085,19 @@ async function callNextNumber() {
     });
     await reloadAll();
     renderQueueAdminPanel();
+    showCallNextFeedback('Nummer ' + nextNumber + ' uppropat');
+    vibrateShort();
   } catch (err) {
     alert('Kunde inte ropa nästa nummer: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      callNextButtonLock = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText || 'Ropa nästa nummer';
+        btn.style.opacity = '';
+      }
+    }, 1000);
   }
 }
 
@@ -2020,10 +2059,8 @@ function renderQueueAdminPanel() {
     list.innerHTML = '<div class="empty-state">Ingen kö vald.</div>';
     const currentNumberDisplay = document.getElementById('currentNumberDisplay');
     const currentNumberSub = document.getElementById('currentNumberSub');
-    const currentNumberMirror = document.getElementById('currentNumberMirror');
     const nextNumberDisplay = document.getElementById('nextNumberDisplay');
     if (currentNumberDisplay) currentNumberDisplay.textContent = '-';
-    if (currentNumberMirror) currentNumberMirror.textContent = '-';
     if (nextNumberDisplay) nextNumberDisplay.textContent = '-';
     if (currentNumberSub) currentNumberSub.textContent = 'Välj en kö för att hålla koll på aktuellt nummer.';
     linkWrap.classList.add('hidden');
