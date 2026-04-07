@@ -193,7 +193,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D13.4 – production ready</div>
+    <div class="version">Version D13.5 – auto refresh</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -647,9 +647,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D13.4 – production ready',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D13.5 – auto refresh<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -689,9 +687,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D13.4 – production ready',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D13.5 – auto refresh<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2637,7 +2633,59 @@ function showQueueDashboard() {
 }
 
 if (!(typeof isQueueMode === 'function' && isQueueMode())) { document.body.classList.remove('queue-public-mode'); }
+
+let appAutoRefreshTimer = null;
+
+function stopAppAutoRefresh() {
+  if (appAutoRefreshTimer) {
+    clearInterval(appAutoRefreshTimer);
+    appAutoRefreshTimer = null;
+  }
+}
+
+function refreshCurrentViewSilently() {
+  if (typeof isQueueMode === 'function' && isQueueMode()) return;
+  if (typeof document === 'undefined' || document.hidden) return;
+
+  reloadAll()
+    .then(() => {
+      // Admin / Köhantering
+      const adminPanel = document.getElementById('adminPanel');
+      const adminVisible = adminPanel && adminPanel.classList.contains('show') && !adminPanel.classList.contains('hidden');
+
+      if (adminVisible) {
+        if (typeof renderQueueAdminPanel === 'function') renderQueueAdminPanel();
+        if (typeof renderMgmt === 'function') renderMgmt();
+        if (typeof renderSignupsAdmin === 'function') renderSignupsAdmin();
+        return;
+      }
+
+      // Volontär
+      if (typeof renderEvents === 'function') renderEvents();
+      if (typeof populateCancelSelect === 'function') populateCancelSelect();
+      if (typeof renderCancelOptions === 'function') renderCancelOptions();
+      if (typeof refreshSignupButton === 'function') refreshSignupButton();
+    })
+    .catch(() => {});
+}
+
+function startAppAutoRefresh() {
+  stopAppAutoRefresh();
+  if (typeof isQueueMode === 'function' && isQueueMode()) return;
+  appAutoRefreshTimer = setInterval(refreshCurrentViewSilently, 15000);
+}
+
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    stopAppAutoRefresh();
+  } else {
+    startAppAutoRefresh();
+    refreshCurrentViewSilently();
+  }
+});
+
 init();
+startAppAutoRefresh();
 showVolunteerView();
 </script>
 </body>
