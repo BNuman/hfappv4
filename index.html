@@ -183,7 +183,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D12.6 – queue join fix</div>
+    <div class="version">Version D12.9 – queue number + text fix</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -208,6 +208,10 @@
       <div id="queueHelperText">1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer</div>
     </div>
     <div class="confirm-title" id="queueTitle" style="font-size:20px;margin-bottom:10px;">Registrering</div>
+    <div class="queue-status-box" style="background:#f3f8f4;">
+      <div id="queueStatusText" style="font-size:14px;line-height:1.6;color:#4b5563;font-weight:700;">Laddar köinformation…</div>
+      <div id="queueBigNumber" class="queue-big-number hidden">0</div>
+    </div>
     <div class="queue-section-title">Aktuellt upprop</div>
     <div class="called-number-box public-big" id="calledNumberBox" style="display:block;border-color:#2E7D4F;background:#eef8f1;">
       <div class="called-number-title hidden" id="calledNumberTitle">Aktuellt upprop</div>
@@ -615,7 +619,9 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D12.6 – queue join fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D12.9 – queue number + text fix',
+    howto_title: 'Så gör du',
+    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -634,7 +640,7 @@ const QUEUE_I18N = {
     left_title: 'Du har lämnat kön',
     left_text: 'Du står inte längre i kön. Om du behöver en ny plats kan personalen hjälpa dig.',
     waiting_status: 'Du är registrerad i kön. Vi ger dig ett nummer snart.',
-    queue_number: 'Du är nummer',
+    queue_number: 'Ditt könummer',
     left_status: 'Du har lämnat kön.',
     note: 'Du behåller din plats i kön även om du väntar här. Du behöver inte trycka igen.',
     food_distribution: 'Matutdelning',
@@ -642,18 +648,17 @@ const QUEUE_I18N = {
     current_call_title: 'Aktuellt upprop',
     current_call_none: 'Inget nummer ropas upp just nu.',
     current_call_prefix: 'Vi ropar upp nummer',
-    turn_now: 'Nu är det din tur',
-    turn_soon: 'Det är snart din tur',
-    turn_wait: 'Vänta på ditt nummer',
-    turn_soon_banner: 'Det är snart din tur',
     turn_now_banner: 'Nu är det din tur',
+    turn_soon_banner: 'Det är snart din tur',
     turn_wait_banner: 'Du står i kön och väntar på ditt nummer.'
   },
   en: {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D12.6 – queue join fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D12.9 – queue number + text fix',
+    howto_title: 'How it works',
+    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -672,7 +677,7 @@ const QUEUE_I18N = {
     left_title: 'You have left the queue',
     left_text: 'You are no longer in the queue. If you need a new place, the staff can help you.',
     waiting_status: 'You are registered in the queue. We will give you a number soon.',
-    queue_number: 'Your number is',
+    queue_number: 'Your queue number',
     left_status: 'You have left the queue.',
     note: 'You keep your place in the queue while waiting here. You do not need to press again.',
     food_distribution: 'Food distribution',
@@ -680,18 +685,15 @@ const QUEUE_I18N = {
     current_call_title: 'Current call',
     current_call_none: 'No number is being called right now.',
     current_call_prefix: 'We are calling number',
-    turn_now: 'It is your turn now',
-    turn_soon: 'It will be your turn soon',
-    turn_wait: 'Wait for your number',
-    turn_soon_banner: 'It will be your turn soon',
     turn_now_banner: 'It is your turn now',
+    turn_soon_banner: 'It will be your turn soon',
     turn_wait_banner: 'You are in the queue and waiting for your number.'
   },
   es: {
     queue_label: 'Fila digital',
     language_label: 'Elegir idioma',
     page_title: 'Fila digital',
-    page_version: 'Versión D12.5 – final clean',
+    page_version: 'Versión D12.9 – queue number + text fix',
     howto_title: 'Cómo funciona',
     howto_steps: '1. Escribe tu nombre si quieres<br>2. Pulsa <strong>Unirme a la fila</strong><br>3. Espera hasta recibir un número',
     name_label: 'Tu nombre (opcional)',
@@ -712,7 +714,7 @@ const QUEUE_I18N = {
     left_title: 'Has salido de la fila',
     left_text: 'Ya no estás en la fila. Si necesitas un nuevo lugar, el personal puede ayudarte.',
     waiting_status: 'Estás registrado en la fila. Pronto te daremos un número.',
-    queue_number: 'Tu número es',
+    queue_number: 'Tu número de fila',
     left_status: 'Has salido de la fila.',
     note: 'Conservas tu lugar en la fila mientras esperas aquí. No necesitas pulsar otra vez.',
     food_distribution: 'Distribución de alimentos',
@@ -720,18 +722,15 @@ const QUEUE_I18N = {
     current_call_title: 'Llamando ahora',
     current_call_none: 'No se está llamando a ningún número ahora mismo.',
     current_call_prefix: 'Estamos llamando al número',
-    turn_now: 'Ahora es tu turno',
-    turn_soon: 'Pronto será tu turno',
-    turn_wait: 'Espera tu número',
-    turn_soon_banner: 'Pronto será tu turno',
     turn_now_banner: 'Ahora es tu turno',
+    turn_soon_banner: 'Pronto será tu turno',
     turn_wait_banner: 'Estás en la fila y esperando tu número.'
   },
   ar: {
     queue_label: 'الطابور الرقمي',
     language_label: 'اختر اللغة',
     page_title: 'الطابور الرقمي',
-    page_version: 'الإصدار D12.5 – final clean',
+    page_version: 'الإصدار D12.9 – queue number + text fix',
     howto_title: 'كيف يعمل',
     howto_steps: '1. اكتب اسمك إذا أردت<br>2. اضغط <strong>انضم إلى الطابور</strong><br>3. انتظر حتى تحصل على رقم',
     name_label: 'اسمك (اختياري)',
@@ -752,7 +751,7 @@ const QUEUE_I18N = {
     left_title: 'لقد غادرت الطابور',
     left_text: 'لم تعد في الطابور. إذا كنت بحاجة إلى مكان جديد، يمكن للموظفين مساعدتك.',
     waiting_status: 'تم تسجيلك في الطابور. سنعطيك رقماً قريباً.',
-    queue_number: 'رقمك هو',
+    queue_number: 'رقمك في الطابور',
     left_status: 'لقد غادرت الطابور.',
     note: 'ستحتفظ بمكانك في الطابور أثناء انتظارك هنا. لا تحتاج إلى الضغط مرة أخرى.',
     food_distribution: 'توزيع الطعام',
@@ -760,18 +759,15 @@ const QUEUE_I18N = {
     current_call_title: 'النداء الحالي',
     current_call_none: 'لا يتم نداء أي رقم الآن.',
     current_call_prefix: 'نحن ننادي الرقم',
-    turn_now: 'الآن جاء دورك',
-    turn_soon: 'سيأتي دورك قريباً',
-    turn_wait: 'انتظر دورك',
-    turn_soon_banner: 'سيأتي دورك قريباً',
     turn_now_banner: 'الآن جاء دورك',
+    turn_soon_banner: 'سيأتي دورك قريباً',
     turn_wait_banner: 'أنت في الطابور وتنتظر رقمك.'
   },
   uk: {
     queue_label: 'Цифрова черга',
     language_label: 'Оберіть мову',
     page_title: 'Цифрова черга',
-    page_version: 'Версія D12.5 – final clean',
+    page_version: 'Версія D12.9 – queue number + text fix',
     howto_title: 'Як це працює',
     howto_steps: '1. Введіть своє ім’я, якщо хочете<br>2. Натисніть <strong>Приєднатися до черги</strong><br>3. Зачекайте, поки отримаєте номер',
     name_label: 'Ваше ім’я (необов’язково)',
@@ -792,7 +788,7 @@ const QUEUE_I18N = {
     left_title: 'Ви вийшли з черги',
     left_text: 'Ви більше не в черзі. Якщо вам потрібне нове місце, персонал може допомогти.',
     waiting_status: 'Вас зареєстровано в черзі. Незабаром ми дамо вам номер.',
-    queue_number: 'Ваш номер',
+    queue_number: 'Ваш номер у черзі',
     left_status: 'Ви вийшли з черги.',
     note: 'Ви зберігаєте своє місце в черзі, поки чекаєте тут. Не потрібно натискати ще раз.',
     food_distribution: 'Роздача їжі',
@@ -800,11 +796,8 @@ const QUEUE_I18N = {
     current_call_title: 'Поточний виклик',
     current_call_none: 'Зараз не викликають жодного номера.',
     current_call_prefix: 'Зараз викликають номер',
-    turn_now: 'Зараз ваша черга',
-    turn_soon: 'Скоро буде ваша черга',
-    turn_wait: 'Чекайте свого номера',
-    turn_soon_banner: 'Скоро буде ваша черга',
     turn_now_banner: 'Зараз ваша черга',
+    turn_soon_banner: 'Скоро буде ваша черга',
     turn_wait_banner: 'Ви в черзі та очікуєте свій номер.'
   }
 };
