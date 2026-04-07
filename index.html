@@ -347,6 +347,26 @@
     margin-top: 18px;
   }
 
+
+  /* D14.4.4 fix */
+  .volunteer-first-nav{
+    justify-content:center !important;
+    margin: 10px 0 8px !important;
+  }
+  .ux-selected-pill{
+    border:none;
+    cursor:pointer;
+    box-shadow:none;
+  }
+  .ux-secondary-nav{
+    justify-content:center !important;
+    margin: 0 0 16px !important;
+    flex-wrap:wrap;
+  }
+  .ux-top-link{
+    padding:6px 4px;
+  }
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -358,10 +378,10 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.4.3 – clean UX</div>
+    <div class="version">Version D14.4.4 – clean UX fix</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
-    <div class="ux-selected-pill" id="uxBtnVolunteer">Volontär</div>
+    <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
   </div>
   <div id="uxSecondaryNav" class="ux-secondary-nav" aria-label="Sekundär navigation">
     <button class="ux-top-link" id="uxBtnAdmin" type="button" onclick="showAdminDashboard()">⚙️ Admin</button>
@@ -794,7 +814,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.4.3 – clean UX<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.4.4 – clean UX fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -834,7 +854,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.4.3 – clean UX<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.4.4 – clean UX fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2723,6 +2743,10 @@ function setTopCopy(title, sub) {
 }
 
 function setUxActive(which) {
+  const volunteerBtn = document.getElementById('uxBtnVolunteer');
+  if (volunteerBtn) {
+    volunteerBtn.style.opacity = which === 'volunteer' ? '1' : '0.92';
+  }
   document.getElementById('uxBtnAdmin')?.classList.toggle('active', which === 'admin');
   document.getElementById('uxBtnQueue')?.classList.toggle('active', which === 'queue');
 }
