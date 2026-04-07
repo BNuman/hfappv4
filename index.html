@@ -193,7 +193,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontäraktiviteter & digital kö</h1>
-    <div class="version">Version D13.2 – queue guidance clean</div>
+    <div class="version">Version D13.3 – queue labels i18n</div>
   
   <div id="uxTopNav" class="ux-top-nav">
     <button class="ux-top-btn active" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -222,7 +222,7 @@
       <div id="queueStatusText" style="font-size:14px;line-height:1.6;color:#4b5563;font-weight:700;">Laddar köinformation…</div>
       <div id="queueBigNumber" class="queue-big-number hidden">0</div>
     </div>
-    <div class="queue-section-title">Aktuellt upprop</div>
+    <div class="queue-section-title" id="queueCurrentCallLabel">Aktuellt upprop</div>
     <div class="called-number-box public-big" id="calledNumberBox" style="display:block;border-color:#2E7D4F;background:#eef8f1;">
       <div class="called-number-title hidden" id="calledNumberTitle">Aktuellt upprop</div>
       <div class="called-number-value" id="calledNumberValue">-</div>
@@ -233,7 +233,7 @@
       <input type="text" id="queueNameInput" placeholder="Skriv ditt namn om du vill" maxlength="50">
     </div>
     <div class="queue-note">Du behåller din plats i kön även om du väntar här. Du behöver inte trycka igen.</div>
-    <div class="queue-section-title">Din status</div>
+    <div class="queue-section-title" id="queueStatusLabel">Din status</div>
     <div id="queueTurnBanner" class="turn-banner big-public wait"></div>
     <div id="queueAheadInfo" class="queue-ahead-pill"></div>
     <div id="queueTurnNotice" class="status-msg" style="font-weight:900;"></div>
@@ -647,9 +647,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D13.2 – queue guidance clean',
-    howto_title: 'Så gör du',
-    howto_steps: '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D13.3 – queue labels i18n<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -673,6 +671,8 @@ const QUEUE_I18N = {
     note: 'Du behåller din plats i kön även om du väntar här. Du behöver inte trycka igen.',
     food_distribution: 'Matutdelning',
     pickup: 'Hämtning',
+    current_call_section: 'Aktuellt upprop',
+    status_section: 'Din status',
     current_call_title: 'Aktuellt upprop',
     current_call_none: 'Inget nummer ropas upp just nu.',
     current_call_prefix: 'Vi ropar upp nummer',
@@ -687,9 +687,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D13.2 – queue guidance clean',
-    howto_title: 'How it works',
-    howto_steps: '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D13.3 – queue labels i18n<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -713,6 +711,8 @@ const QUEUE_I18N = {
     note: 'You keep your place in the queue while waiting here. You do not need to press again.',
     food_distribution: 'Food distribution',
     pickup: 'Collection',
+    current_call_section: 'Current call',
+    status_section: 'Your status',
     current_call_title: 'Current call',
     current_call_none: 'No number is being called right now.',
     current_call_prefix: 'We are calling number',
@@ -753,6 +753,8 @@ const QUEUE_I18N = {
     note: 'Conservas tu lugar en la fila mientras esperas aquí. No necesitas pulsar otra vez.',
     food_distribution: 'Distribución de alimentos',
     pickup: 'Recogida',
+    current_call_section: 'Llamando ahora',
+    status_section: 'Tu estado',
     current_call_title: 'Llamando ahora',
     current_call_none: 'No se está llamando a ningún número ahora mismo.',
     current_call_prefix: 'Estamos llamando al número',
@@ -793,6 +795,8 @@ const QUEUE_I18N = {
     note: 'ستحتفظ بمكانك في الطابور أثناء انتظارك هنا. لا تحتاج إلى الضغط مرة أخرى.',
     food_distribution: 'توزيع الطعام',
     pickup: 'الاستلام',
+    current_call_section: 'النداء الحالي',
+    status_section: 'حالتك',
     current_call_title: 'النداء الحالي',
     current_call_none: 'لا يتم نداء أي رقم الآن.',
     current_call_prefix: 'نحن ننادي الرقم',
@@ -833,6 +837,8 @@ const QUEUE_I18N = {
     note: 'Ви зберігаєте своє місце в черзі, поки чекаєте тут. Не потрібно натискати ще раз.',
     food_distribution: 'Роздача їжі',
     pickup: 'Отримання',
+    current_call_section: 'Поточний виклик',
+    status_section: 'Ваш статус',
     current_call_title: 'Поточний виклик',
     current_call_none: 'Зараз не викликають жодного номера.',
     current_call_prefix: 'Зараз викликають номер',
@@ -975,6 +981,8 @@ function applyQueueLanguageStatic() {
   const note = document.querySelector('#queueCard .queue-note');
   const pageTitle = document.getElementById('mainPageTitle');
   const pageVersion = document.getElementById('mainPageVersion');
+  const currentCallLabel = document.getElementById('queueCurrentCallLabel');
+  const statusLabel = document.getElementById('queueStatusLabel');
   const helperTitle = document.getElementById('queueHelperTitle');
   const helperText = document.getElementById('queueHelperText');
   const joinBtn = document.getElementById('queueJoinBtn');
@@ -989,6 +997,8 @@ function applyQueueLanguageStatic() {
     if (pageTitle) pageTitle.textContent = tQueue('page_title');
     if (pageVersion) pageVersion.textContent = tQueue('page_version');
   }
+  if (currentCallLabel) currentCallLabel.textContent = tQueue('current_call_section');
+  if (statusLabel) statusLabel.textContent = tQueue('status_section');
 
   const helperState = helperTitle?.dataset.state || 'default';
   if (helperTitle && helperText) {
