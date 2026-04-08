@@ -410,7 +410,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.7.4 – toggle state UI</div>
+    <div class="version">Version D14.7.5 – toggle state fix</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -866,7 +866,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.7.4 – toggle state UI<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.7.5 – toggle state fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -906,7 +906,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.7.4 – toggle state UI<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.7.5 – toggle state fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2483,10 +2483,13 @@ function renderQueueAdminPanel() {
       <div class="volunteer-toggle-title">Kövisning för volontärer</div>
       <div class="volunteer-toggle-row">
         <div class="volunteer-toggle-status">
-          ${session.location === true ? 'Visas för volontärer' : 'Dold för volontärer'}
+          ${isVolunteerQueueVisible(session) ? 'Visas för volontärer' : 'Dold för volontärer'}
         </div>
-        <button class="mini-btn secondary-btn" type="button" onclick="toggleVolunteerQueueVisibility()">
-          ${session.location === true ? 'Dölj köinfo för volontärer' : 'Visa köinfo för volontärer'}
+        <button
+          class="mini-btn volunteer-toggle-btn ${isVolunteerQueueVisible(session) ? 'visible' : 'hidden-state'}"
+          type="button"
+          onclick="toggleVolunteerQueueVisibility()">
+          ${isVolunteerQueueVisible(session) ? 'Dölj köinfo för volontärer' : 'Visa köinfo för volontärer'}
         </button>
       </div>
     </div>
