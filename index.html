@@ -410,7 +410,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.7.7 – translation fix</div>
+    <div class="version">Version D14.7.8 – hotfix restore</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -868,7 +868,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.7.7 – translation fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.7.8 – hotfix restore<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -908,7 +908,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.7.7 – translation fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.7.8 – hotfix restore<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -949,8 +949,8 @@ const QUEUE_I18N = {
     language_label: 'Elegir idioma',
     page_title: 'Fila digital',
     page_version: 'Versión D13.4 – production ready',
-    SÅ GÖR DU: 'Cómo funciona',
-    1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner: '1. Escribe tu nombre si quieres<br>2. Pulsa <strong>Unirme a la fila</strong><br>3. Espera hasta recibir un número',
+    howto_title: 'Cómo funciona',
+    howto_steps: '1. Escribe tu nombre si quieres<br>2. Pulsa <strong>Unirme a la fila</strong><br>3. Espera hasta recibir un número',
     name_label: 'Tu nombre (opcional)',
     name_placeholder: 'Escribe tu nombre si quieres',
     join: 'Unirme a la fila',
@@ -991,8 +991,8 @@ const QUEUE_I18N = {
     language_label: 'اختر اللغة',
     page_title: 'الطابور الرقمي',
     page_version: 'الإصدار D13.4 – production ready',
-    SÅ GÖR DU: 'كيف يعمل',
-    1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner: '1. اكتب اسمك إذا أردت<br>2. اضغط <strong>انضم إلى الطابور</strong><br>3. انتظر حتى تحصل على رقم',
+    howto_title: 'كيف يعمل',
+    howto_steps: '1. اكتب اسمك إذا أردت<br>2. اضغط <strong>انضم إلى الطابور</strong><br>3. انتظر حتى تحصل على رقم',
     name_label: 'اسمك (اختياري)',
     name_placeholder: 'اكتب اسمك إذا أردت',
     join: 'انضم إلى الطابور',
@@ -1033,8 +1033,8 @@ const QUEUE_I18N = {
     language_label: 'Оберіть мову',
     page_title: 'Цифрова черга',
     page_version: 'Версія D13.4 – production ready',
-    SÅ GÖR DU: 'Як це працює',
-    1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner: '1. Введіть своє ім’я, якщо хочете<br>2. Натисніть <strong>Приєднатися до черги</strong><br>3. Зачекайте, поки отримаєте номер',
+    howto_title: 'Як це працює',
+    howto_steps: '1. Введіть своє ім’я, якщо хочете<br>2. Натисніть <strong>Приєднатися до черги</strong><br>3. Зачекайте, поки отримаєте номер',
     name_label: 'Ваше ім’я (необов’язково)',
     name_placeholder: 'Введіть своє ім’я, якщо хочете',
     join: 'Приєднатися до черги',
@@ -1233,10 +1233,15 @@ function applyQueueLanguageStatic() {
     ? helperTitle.dataset.state
     : 'default';
 
+  const defaultTitle = currentQueueLang === 'en' ? 'How it works' : 'Så gör du';
+  const defaultSteps = currentQueueLang === 'en'
+    ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number'
+    : '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer';
+
   if (helperTitle && helperText) {
     if (helperState === 'default') {
-      helperTitle.textContent = safeQueueText('SÅ GÖR DU', currentQueueLang === 'en' ? 'How it works' : 'Så gör du');
-      helperText.innerHTML = safeQueueText('1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner', currentQueueLang === 'en' ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number' : '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer');
+      helperTitle.textContent = defaultTitle;
+      helperText.innerHTML = defaultSteps;
     } else if (helperState === 'waiting') {
       helperTitle.textContent = tQueue('already_title');
       helperText.innerHTML = tQueue('already_text');
@@ -1250,8 +1255,8 @@ function applyQueueLanguageStatic() {
       helperTitle.textContent = tQueue('no_open_title');
       helperText.innerHTML = tQueue('no_open_text');
     } else {
-      helperTitle.textContent = safeQueueText('SÅ GÖR DU', currentQueueLang === 'en' ? 'How it works' : 'Så gör du');
-      helperText.innerHTML = safeQueueText('1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner', currentQueueLang === 'en' ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number' : '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer');
+      helperTitle.textContent = defaultTitle;
+      helperText.innerHTML = defaultSteps;
     }
   }
 
@@ -1262,7 +1267,6 @@ function applyQueueLanguageStatic() {
 
   updatePublicCalledNumber();
   updateQueueLanguageUI();
-  forceHelperDefaultText();
 }
 function setQueueLanguage(lang) {
   currentQueueLang = QUEUE_I18N[lang] ? lang : 'sv';
@@ -2787,10 +2791,10 @@ function renderQueueView() {
     }
     if (helperTitleEl) {
       helperTitleEl.dataset.state = 'default';
-      helperTitleEl.textContent = tQueue('SÅ GÖR DU');
+      helperTitleEl.textContent = tQueue('howto_title');
     }
     if (helperTextEl) {
-      helperTextEl.innerHTML = tQueue('1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner');
+      helperTextEl.innerHTML = tQueue('howto_steps');
     }
     if (status) status.textContent = session.queue_open ? tQueue('wait_msg') : tQueue('closed_msg');
     updatePublicCalledNumber();
@@ -3039,8 +3043,8 @@ function forceHelperDefaultText() {
 
   const state = (helperTitle.dataset && helperTitle.dataset.state) || 'default';
   if (state === 'default') {
-    helperTitle.textContent = tQueue('SÅ GÖR DU');
-    helperText.innerHTML = tQueue('1. Fyll i ditt namn<br>2. Välj aktivitet<br>3. Klicka på knappen längst ner');
+    helperTitle.textContent = tQueue('howto_title');
+    helperText.innerHTML = tQueue('howto_steps');
   }
 }
 
