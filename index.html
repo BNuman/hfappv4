@@ -370,18 +370,17 @@
 
     .volunteer-queue-overview{display:none;margin:0 0 18px;padding:16px;border:2px solid #d7eadc;border-radius:18px;background:#f8fbf9}
     .volunteer-queue-overview.show{display:block}
-    .volunteer-queue-overview .title{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin:0 0 8px}
-    .volunteer-queue-overview .queue-name{font-size:14px;font-weight:900;color:#1f2937;margin-bottom:12px}
-    .volunteer-queue-overview .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .volunteer-queue-overview .vq-card{padding:12px;border-radius:14px;border:2px solid #dbe7df;background:#fff}
-    .volunteer-queue-overview .vq-card .label{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
-    .volunteer-queue-overview .vq-card .value{font-size:26px;line-height:1;margin-top:8px;font-weight:900;color:#1f2937}
-    .volunteer-queue-overview .vq-card.current .value{color:#2E7D4F}
-    .volunteer-queue-overview .note{font-size:12px;color:#64748b;font-weight:700;margin-top:12px;line-height:1.45}
-    @media (max-width: 640px){ .volunteer-queue-overview .grid{grid-template-columns:1fr} }
+    .volunteer-queue-overview .vqo-title{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin:0 0 8px}
+    .volunteer-queue-overview .vqo-name{font-size:14px;font-weight:900;color:#1f2937;margin-bottom:12px}
+    .volunteer-queue-overview .vqo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .volunteer-queue-overview .vqo-card{padding:12px;border-radius:14px;border:2px solid #dbe7df;background:#fff}
+    .volunteer-queue-overview .vqo-card .label{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
+    .volunteer-queue-overview .vqo-card .value{font-size:26px;line-height:1;margin-top:8px;font-weight:900;color:#1f2937}
+    .volunteer-queue-overview .vqo-card.current .value{color:#2E7D4F}
+    .volunteer-queue-overview .vqo-note{font-size:12px;color:#64748b;font-weight:700;margin-top:12px;line-height:1.45}
+    .toggle-volunteer-queue-btn{background:#eef8f1!important;color:#2E7D4F!important;border:2px solid #cfe6d5!important}
+    @media (max-width:640px){.volunteer-queue-overview .vqo-grid{grid-template-columns:1fr}}
 
-
-@media (max-width: 640px){ .current-next-grid{grid-template-columns:1fr !important;} }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -393,7 +392,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.6.2 – queue layout fix</div>
+    <div class="version">Version D14.7 – volunteer queue toggle</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -455,23 +454,23 @@
       </div>
 
       <div id="volunteerQueueOverview" class="volunteer-queue-overview">
-        <div class="title">Kööversikt</div>
-        <div class="queue-name" id="volunteerQueueOverviewName">Aktiv kö</div>
-        <div class="grid">
-          <div class="vq-card current">
+        <div class="vqo-title">Köläget just nu</div>
+        <div class="vqo-name" id="volunteerQueueOverviewName">Aktiv kö</div>
+        <div class="vqo-grid">
+          <div class="vqo-card current">
             <div class="label">Aktuellt nummer</div>
             <div class="value" id="volunteerQueueOverviewCurrent">-</div>
           </div>
-          <div class="vq-card">
+          <div class="vqo-card">
             <div class="label">Utdelade nummer</div>
             <div class="value" id="volunteerQueueOverviewAssigned">0</div>
           </div>
-          <div class="vq-card">
+          <div class="vqo-card">
             <div class="label">Kvar i kön</div>
             <div class="value" id="volunteerQueueOverviewRemaining">0</div>
           </div>
         </div>
-        <div class="note">Visas bara när det finns en aktiv kö eller pågående utdelning.</div>
+        <div class="vqo-note">Den här rutan visas bara när kövisning för volontärer är aktiverad.</div>
       </div>
       <div class="input-group">
         <div class="section-label">Ditt namn</div>
@@ -752,11 +751,6 @@ function updateAdminCurrentNext(queueId) {
   if (nextDisplay) nextDisplay.textContent = next;
 }
 
-function updateQueueSummary(queueId) {
-  return;
-}
-
-
 let callNextButtonLock = false;
 
 function showCallNextFeedback(text) {
@@ -854,7 +848,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.6.2 – queue layout fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.7 – volunteer queue toggle<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -894,7 +888,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.6.2 – queue layout fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.7 – volunteer queue toggle<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -934,7 +928,7 @@ const QUEUE_I18N = {
     queue_label: 'Fila digital',
     language_label: 'Elegir idioma',
     page_title: 'Fila digital',
-    page_version: 'Versión D14.4.5 – hotfix',
+    page_version: 'Versión D13.4 – production ready',
     howto_title: 'Cómo funciona',
     howto_steps: '1. Escribe tu nombre si quieres<br>2. Pulsa <strong>Unirme a la fila</strong><br>3. Espera hasta recibir un número',
     name_label: 'Tu nombre (opcional)',
@@ -976,7 +970,7 @@ const QUEUE_I18N = {
     queue_label: 'الطابور الرقمي',
     language_label: 'اختر اللغة',
     page_title: 'الطابور الرقمي',
-    page_version: 'الإصدار D14.4.5 – hotfix',
+    page_version: 'الإصدار D13.4 – production ready',
     howto_title: 'كيف يعمل',
     howto_steps: '1. اكتب اسمك إذا أردت<br>2. اضغط <strong>انضم إلى الطابور</strong><br>3. انتظر حتى تحصل على رقم',
     name_label: 'اسمك (اختياري)',
@@ -1018,7 +1012,7 @@ const QUEUE_I18N = {
     queue_label: 'Цифрова черга',
     language_label: 'Оберіть мову',
     page_title: 'Цифрова черга',
-    page_version: 'Версія D14.4.5 – hotfix',
+    page_version: 'Версія D13.4 – production ready',
     howto_title: 'Як це працює',
     howto_steps: '1. Введіть своє ім’я, якщо хочете<br>2. Натисніть <strong>Приєднатися до черги</strong><br>3. Зачекайте, поки отримаєте номер',
     name_label: 'Ваше ім’я (необов’язково)',
@@ -1220,14 +1214,9 @@ function applyQueueLanguageStatic() {
     : 'default';
 
   if (helperTitle && helperText) {
-    const defaultTitle = currentQueueLang === 'en' ? 'How it works' : tQueue('howto_title');
-    const defaultSteps = currentQueueLang === 'en'
-      ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number'
-      : tQueue('howto_steps');
-
     if (helperState === 'default') {
-      helperTitle.textContent = defaultTitle;
-      helperText.innerHTML = defaultSteps;
+      helperTitle.textContent = safeQueueText('howto_title', currentQueueLang === 'en' ? 'How it works' : 'Så gör du');
+      helperText.innerHTML = safeQueueText('howto_steps', currentQueueLang === 'en' ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number' : '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer');
     } else if (helperState === 'waiting') {
       helperTitle.textContent = tQueue('already_title');
       helperText.innerHTML = tQueue('already_text');
@@ -1241,8 +1230,8 @@ function applyQueueLanguageStatic() {
       helperTitle.textContent = tQueue('no_open_title');
       helperText.innerHTML = tQueue('no_open_text');
     } else {
-      helperTitle.textContent = defaultTitle;
-      helperText.innerHTML = defaultSteps;
+      helperTitle.textContent = safeQueueText('howto_title', currentQueueLang === 'en' ? 'How it works' : 'Så gör du');
+      helperText.innerHTML = safeQueueText('howto_steps', currentQueueLang === 'en' ? '1. Enter your name if you want<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number' : '1. Skriv ditt namn om du vill<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer');
     }
   }
 
@@ -1253,6 +1242,7 @@ function applyQueueLanguageStatic() {
 
   updatePublicCalledNumber();
   updateQueueLanguageUI();
+  forceHelperDefaultText();
 }
 function setQueueLanguage(lang) {
   currentQueueLang = QUEUE_I18N[lang] ? lang : 'sv';
@@ -1506,6 +1496,10 @@ function getHeaders(useAdmin = false, prefer = '') {
 }
 
 
+function isVolunteerQueueVisible(session) {
+  return !!session && session.show_queue_for_volunteers === true;
+}
+
 function updateVolunteerQueueOverview() {
   const wrap = document.getElementById('volunteerQueueOverview');
   const nameEl = document.getElementById('volunteerQueueOverviewName');
@@ -1515,7 +1509,7 @@ function updateVolunteerQueueOverview() {
   if (!wrap || !nameEl || !currentEl || !assignedEl || !remainingEl) return;
 
   const relevant = queueSessionsCache
-    .filter(q => q && q.active !== false)
+    .filter(q => q && q.active !== false && isVolunteerQueueVisible(q))
     .map(q => {
       const assignedRows = getQueueEntriesForSession(q.id)
         .filter(r => r.status === 'assigned' && r.queue_number != null)
@@ -1526,13 +1520,14 @@ function updateVolunteerQueueOverview() {
       const remainingCount = current == null || current === ''
         ? distributedCount
         : assignedRows.filter(r => Number(r.queue_number) > Number(current)).length;
-      const show = !!q.queue_open || !!current || distributedCount > 0;
-      return { q, current, distributedCount, remainingCount, show };
+      return { session: q, current, distributedCount, remainingCount };
     })
-    .filter(x => x.show)
     .sort((a, b) => {
-      if ((!!a.q.queue_open) !== (!!b.q.queue_open)) return a.q.queue_open ? -1 : 1;
-      return String(a.q.date || '').localeCompare(String(b.q.date || ''));
+      if ((!!a.session.queue_open) !== (!!b.session.queue_open)) return a.session.queue_open ? -1 : 1;
+      const ad = String(a.session.date || '');
+      const bd = String(b.session.date || '');
+      if (ad !== bd) return ad.localeCompare(bd);
+      return String(a.session.time || '').localeCompare(String(b.session.time || ''));
     });
 
   if (!relevant.length) {
@@ -1542,10 +1537,32 @@ function updateVolunteerQueueOverview() {
 
   const chosen = relevant[0];
   wrap.classList.add('show');
-  nameEl.textContent = chosen.q.title || 'Aktiv kö';
+  nameEl.textContent = chosen.session.title || 'Aktiv kö';
   currentEl.textContent = chosen.current || '-';
   assignedEl.textContent = String(chosen.distributedCount);
   remainingEl.textContent = String(chosen.remainingCount);
+}
+
+async function toggleVolunteerQueueVisibility() {
+  ensureAdmin();
+  const queueId = document.getElementById('adminQueueSelect')?.value;
+  if (!queueId) { alert('Välj en kö först.'); return; }
+  const session = queueSessionsCache.find(q => q.id === queueId);
+  if (!session) { alert('Kön kunde inte hittas.'); return; }
+
+  const nextValue = !(session.show_queue_for_volunteers === true);
+
+  try {
+    await api('/rest/v1/queue_sessions?id=eq.' + encodeURIComponent(queueId), {
+      method: 'PATCH',
+      headers: getHeaders(true, 'return=minimal'),
+      body: JSON.stringify({ show_queue_for_volunteers: nextValue })
+    });
+    await reloadAll();
+    renderQueueAdminPanel();
+  } catch (err) {
+    alert('Kunde inte uppdatera kövisning för volontärer: ' + err.message);
+  }
 }
 
 async function loadEvents() {
@@ -2234,6 +2251,7 @@ async function addEvent() {
         allowed_pickup_locations: selectedLocations,
         queue_enabled: false,
         queue_open: false,
+        show_queue_for_volunteers: false,
         queue_assigned: false,
         queue_assigned_at: null
       }])
@@ -2392,7 +2410,6 @@ function renderQueueAdminPanel() {
     const currentNumberDisplay = document.getElementById('currentNumberDisplay');
     const currentNumberSub = document.getElementById('currentNumberSub');
     const nextNumberDisplay = document.getElementById('nextNumberDisplay');
-
     if (currentNumberDisplay) currentNumberDisplay.textContent = '-';
     if (nextNumberDisplay) nextNumberDisplay.textContent = '-';
     if (currentNumberSub) currentNumberSub.textContent = 'Välj en kö för att hålla koll på aktuellt nummer.';
@@ -2403,7 +2420,6 @@ function renderQueueAdminPanel() {
   const session = queueSessionsCache.find(q => q.id === queueId);
   const rows = getQueueEntriesForSession(queueId);
   updateAdminCurrentNext(queueId);
-  updateQueueSummary(queueId);
   updateCurrentNumberDisplay();
   const waiting = rows.filter(r => r.status === 'waiting').length;
   const assigned = rows.filter(r => r.status === 'assigned').length;
@@ -2419,6 +2435,12 @@ function renderQueueAdminPanel() {
     <div style="font-size:13px;color:#6b7280;line-height:1.5;">
       Status: <strong>${session.queue_open ? 'Öppen' : 'Stängd'}</strong><br>
       Väntar: <strong>${waiting}</strong> · Fått köplats: <strong>${assigned}</strong> · Lämnat kön: <strong>${left}</strong>
+    </div>
+    <div class="queue-summary">
+      <div class="queue-summary-card"><div class="queue-summary-label">Totalt i kön</div><div class="queue-summary-value">${rows.length}</div></div>
+      <div class="queue-summary-card"><div class="queue-summary-label">Väntar</div><div class="queue-summary-value">${waiting}</div></div>
+      <div class="queue-summary-card"><div class="queue-summary-label">Köplats</div><div class="queue-summary-value">${assigned}</div></div>
+      <div class="queue-summary-card"><div class="queue-summary-label">Lämnat kön</div><div class="queue-summary-value">${left}</div></div>
     </div>
   `;
   linkWrap.classList.remove('hidden');
