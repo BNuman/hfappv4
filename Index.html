@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Realtime – Digital kö – Humanity First Sverige – Version B</title>
+  <title>Realtime – Digital kö – Medmänniska Sverige – Version B</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
@@ -407,10 +407,10 @@
 
 
   <div class="logo-area">
-    <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
-    <div class="org-name">Humanity First Sverige</div>
+    
+    <div class="org-name">Medmänniska Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.8.5 – user live refresh fix</div>
+    <div class="version">Version D14.9.1 – Medmänniska Sverige branding</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -706,6 +706,33 @@ let isJoiningQueue = false;
 let queuePollTimer = null;
 let adminQueuePollTimer = null;
 
+function stopAdminQueueAutoRefresh() {
+  if (adminQueuePollTimer) {
+    clearInterval(adminQueuePollTimer);
+    adminQueuePollTimer = null;
+  }
+}
+
+function startAdminQueueAutoRefresh() {
+  stopAdminQueueAutoRefresh();
+  if (isQueueMode()) return;
+
+  adminQueuePollTimer = setInterval(async () => {
+    try {
+      const panel = document.getElementById('adminPanel');
+      const queueSelect = document.getElementById('adminQueueSelect');
+      const queueId = queueSelect?.value || '';
+      const panelVisible = panel && panel.classList.contains('show') && !panel.classList.contains('hidden');
+      if (!panelVisible || !queueId) return;
+
+      await loadQueueSessions();
+      await loadQueueEntries();
+      renderQueueAdminPanel();
+    } catch (e) {
+      console.error('Admin queue auto refresh error', e);
+    }
+  }, 1500);
+}
 let publicQueueLiveTimer = null;
 
 function stopPublicQueueLiveRefresh() {
@@ -724,12 +751,12 @@ function startPublicQueueLiveRefresh() {
       await loadQueueSessions();
       await loadQueueEntries();
       renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
     } catch (e) {
       console.error('Public queue live refresh error', e);
     }
   }, 1500);
 }
-
 let isCreatingEvent = false;
 let selectedEventId = null;
 
@@ -872,14 +899,10 @@ function startQueuePolling() {
 }
 
 function stopAdminQueuePolling() {
-  if (adminQueuePollTimer) {
-    clearInterval(adminQueuePollTimer);
-    adminQueuePollTimer = null;
-  }
+  stopAdminQueueAutoRefresh();
 }
 function startAdminQueuePolling() {
-  // Replaced by Supabase Realtime
-  return;
+  startAdminQueueAutoRefresh();
 }
 
 
@@ -893,7 +916,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.8.5 – user live refresh fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.9.1 – Medmänniska Sverige branding<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -933,7 +956,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.8.5 – user live refresh fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.9.1 – Medmänniska Sverige branding<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1298,6 +1321,7 @@ function setQueueLanguage(lang) {
   try { localStorage.setItem(QUEUE_LANG_KEY, currentQueueLang); } catch (e) {}
   applyQueueLanguageStatic();
   if (typeof renderQueueView === 'function' && isQueueMode()) renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
 }
 
 
@@ -1678,6 +1702,7 @@ async function reloadAll() {
     }
   }
   if (isQueueMode()) renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
 }
 
 function renderPublicEvents() {
@@ -2716,6 +2741,7 @@ async function joinQueue() {
   if (existingLocalEntry) {
     await reloadAll();
     renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
     return;
   }
 
@@ -2738,6 +2764,7 @@ async function joinQueue() {
     if (created?.id) setQueueEntry(queueId, created.id);
     await reloadAll();
     renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
   } catch (err) {
     if (statusEl) {
       statusEl.textContent = 'Kunde inte ställa dig i kön: ' + err.message;
@@ -2925,6 +2952,7 @@ async function init() {
     updateCurrentNumberDisplay();
     if (isQueueMode()) {
       renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
       startQueuePolling();
       startPublicQueueLiveRefresh();
     } else {
@@ -2980,6 +3008,7 @@ function showVolunteerView() {
   hideEl('adminPanel');
   hideEl('queueCard');
   if (typeof updateVolunteerQueueOverview === 'function') updateVolunteerQueueOverview();
+  stopAdminQueueAutoRefresh();
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
@@ -2997,6 +3026,7 @@ function showAdminDashboard() {
   const panel = document.getElementById('adminPanel');
   if (panel) panel.classList.add('show');
   if (typeof switchTab === 'function') switchTab(0);
+  stopAdminQueueAutoRefresh();
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
@@ -3014,6 +3044,7 @@ function showQueueDashboard() {
   const panel = document.getElementById('adminPanel');
   if (panel) panel.classList.add('show');
   if (typeof switchTab === 'function') switchTab(3);
+  startAdminQueueAutoRefresh();
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
@@ -3100,6 +3131,7 @@ function scheduleRealtimeRefresh() {
 
       if (typeof isQueueMode === 'function' && isQueueMode()) {
         if (typeof renderQueueView === 'function') renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
         if (typeof applyQueueLanguageStatic === 'function') applyQueueLanguageStatic();
         return;
       }
@@ -3164,12 +3196,15 @@ document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
     clearRealtimeChannels();
     stopPublicQueueLiveRefresh();
+    stopAdminQueueAutoRefresh();
   } else {
     startRealtimeSubscriptions();
     scheduleRealtimeRefresh();
     if (isQueueMode()) {
       startPublicQueueLiveRefresh();
       loadQueueSessions().then(loadQueueEntries).then(renderQueueView).catch(() => {});
+    } else {
+      startAdminQueueAutoRefresh();
     }
   }
 });
