@@ -410,7 +410,7 @@
     <img src="./logo.png" class="logo-img" alt="Humanity First Sverige">
     <div class="org-name">Humanity First Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.8.5 – user live refresh fix</div>
+    <div class="version">Version D14.8.6 – fresh queue polling</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -865,10 +865,13 @@ function stopQueuePolling() {
     clearInterval(queuePollTimer);
     queuePollTimer = null;
   }
-  stopPublicQueueLiveRefresh();
+  if (typeof stopPublicQueueLiveRefresh === 'function') stopPublicQueueLiveRefresh();
 }
 function startQueuePolling() {
-  startPublicQueueLiveRefresh();
+  if (typeof startPublicQueueLiveRefresh === 'function') {
+    startPublicQueueLiveRefresh();
+    return;
+  }
 }
 
 function stopAdminQueuePolling() {
@@ -893,7 +896,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.8.5 – user live refresh fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.8.6 – fresh queue polling<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -933,7 +936,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.8.5 – user live refresh fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.8.6 – fresh queue polling<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1520,10 +1523,12 @@ function api(path, options = {}) {
     Authorization: 'Bearer ' + SUPABASE_KEY
   };
   const headers = { ...defaultHeaders, ...(options.headers || {}) };
+  const method = options.method || 'GET';
   return fetch(SUPABASE_URL + path, {
-    method: options.method || 'GET',
+    method,
     headers,
-    body: options.body || undefined
+    body: options.body || undefined,
+    cache: 'no-store'
   }).then(async res => {
     const text = await res.text();
     let data = null;
@@ -1640,10 +1645,12 @@ async function loadSignups() {
   signupsCache = await api('/rest/v1/signups?select=*&order=created_at.asc');
 }
 async function loadQueueSessions() {
-  queueSessionsCache = await api('/rest/v1/queue_sessions?select=*&order=created_at.desc');
+  const ts = Date.now();
+  queueSessionsCache = await api('/rest/v1/queue_sessions?select=*&order=created_at.desc&_ts=' + ts);
 }
 async function loadQueueEntries() {
-  queueEntriesCache = await api('/rest/v1/queue_entries?select=*&order=joined_at.asc');
+  const ts = Date.now();
+  queueEntriesCache = await api('/rest/v1/queue_entries?select=*&order=joined_at.asc&_ts=' + ts);
 }
 async function reloadAll() {
   const selectedAdminEvent = document.getElementById('adminEventSelect')?.value || '';
@@ -2926,7 +2933,7 @@ async function init() {
     if (isQueueMode()) {
       renderQueueView();
       startQueuePolling();
-      startPublicQueueLiveRefresh();
+      if (typeof startPublicQueueLiveRefresh === 'function') startPublicQueueLiveRefresh();
     } else {
       stopQueuePolling();
     }
@@ -3163,14 +3170,9 @@ function startRealtimeSubscriptions() {
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
     clearRealtimeChannels();
-    stopPublicQueueLiveRefresh();
   } else {
     startRealtimeSubscriptions();
     scheduleRealtimeRefresh();
-    if (isQueueMode()) {
-      startPublicQueueLiveRefresh();
-      loadQueueSessions().then(loadQueueEntries).then(renderQueueView).catch(() => {});
-    }
   }
 });
 
