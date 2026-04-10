@@ -751,6 +751,7 @@ function startPublicQueueLiveRefresh() {
       await loadQueueSessions();
       await loadQueueEntries();
       renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
     } catch (e) {
       console.error('Public queue live refresh error', e);
     }
@@ -1320,6 +1321,7 @@ function setQueueLanguage(lang) {
   try { localStorage.setItem(QUEUE_LANG_KEY, currentQueueLang); } catch (e) {}
   applyQueueLanguageStatic();
   if (typeof renderQueueView === 'function' && isQueueMode()) renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
 }
 
 
@@ -1700,6 +1702,7 @@ async function reloadAll() {
     }
   }
   if (isQueueMode()) renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
 }
 
 function renderPublicEvents() {
@@ -2738,6 +2741,7 @@ async function joinQueue() {
   if (existingLocalEntry) {
     await reloadAll();
     renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
     return;
   }
 
@@ -2760,6 +2764,7 @@ async function joinQueue() {
     if (created?.id) setQueueEntry(queueId, created.id);
     await reloadAll();
     renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
   } catch (err) {
     if (statusEl) {
       statusEl.textContent = 'Kunde inte ställa dig i kön: ' + err.message;
@@ -2947,6 +2952,7 @@ async function init() {
     updateCurrentNumberDisplay();
     if (isQueueMode()) {
       renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
       startQueuePolling();
       startPublicQueueLiveRefresh();
     } else {
@@ -3125,6 +3131,7 @@ function scheduleRealtimeRefresh() {
 
       if (typeof isQueueMode === 'function' && isQueueMode()) {
         if (typeof renderQueueView === 'function') renderQueueView();
+if (typeof applyTranslations==='function'){applyTranslations();}
         if (typeof applyQueueLanguageStatic === 'function') applyQueueLanguageStatic();
         return;
       }
