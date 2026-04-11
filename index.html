@@ -410,7 +410,7 @@
     
     <div class="org-name">Medmänniska Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.9.6 – vibration fix</div>
+    <div class="version">Version D14.9.7 – stronger vibration fix</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -917,7 +917,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.9.6 – vibration fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.9.7 – stronger vibration fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -957,7 +957,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.9.6 – vibration fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.9.7 – stronger vibration fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1208,6 +1208,22 @@ function updatePublicCalledNumber() {
 
 let lastQueueVibrationState = '';
 
+function triggerQueueVibration(pattern) {
+  try {
+    if (!document.hidden && navigator.vibrate) {
+      navigator.vibrate(pattern);
+      setTimeout(() => {
+        try { if (!document.hidden && navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+      }, 250);
+    }
+  } catch (e) {}
+}
+
+function getQueueAlertStageKey(queueId, entryId) {
+  return 'hf_queue_alert_stage_' + queueId + '_' + entryId;
+}
+
+
 function updateUserTurnNotification(entry) {
   const bannerEl = document.getElementById('queueTurnBanner');
   const aheadEl = document.getElementById('queueAheadInfo');
@@ -1251,31 +1267,37 @@ function updateUserTurnNotification(entry) {
     aheadEl.className = 'queue-ahead-pill show';
   }
 
-  const vibrationState = diff === 0
-    ? ('now-' + queueId + '-' + entry.id + '-' + current)
-    : (diff > 0 && diff <= 3
-        ? ('soon-' + queueId + '-' + entry.id + '-' + current)
-        : ('wait-' + queueId + '-' + entry.id + '-' + current));
+  let stage = 'wait';
+  if (diff === 0) stage = 'now';
+  else if (diff > 0 && diff <= 3) stage = 'soon';
 
-  if (diff === 0) {
+  const vibrationState = stage + '-' + queueId + '-' + entry.id + '-' + current;
+  const stageKey = getQueueAlertStageKey(queueId, entry.id);
+  let previousStage = '';
+  try { previousStage = sessionStorage.getItem(stageKey) || ''; } catch (e) {}
+
+  if (stage === 'now') {
     bannerEl.innerHTML = '🟢 ' + tQueue('turn_now_banner') + '<br><span style="font-size:15px;font-weight:800;">' + tQueue('turn_now_banner_sub') + '</span>';
     bannerEl.className = 'turn-banner big-public show nowsoft';
     try {
-      if (lastQueueVibrationState !== vibrationState && navigator.vibrate) {
-        navigator.vibrate([180, 100, 180]);
+      if (lastQueueVibrationState !== vibrationState || previousStage !== 'now') {
+        triggerQueueVibration([300, 120, 300, 120, 600]);
+        try { sessionStorage.setItem(stageKey, 'now'); } catch (e) {}
       }
     } catch (e) {}
-  } else if (diff > 0 && diff <= 3) {
+  } else if (stage === 'soon') {
     bannerEl.innerHTML = '🟡 ' + tQueue('turn_soon_banner') + '<br><span style="font-size:15px;font-weight:800;">' + tQueue('turn_soon_banner_sub') + '</span>';
     bannerEl.className = 'turn-banner big-public show ahead';
     try {
-      if (lastQueueVibrationState !== vibrationState && navigator.vibrate) {
-        navigator.vibrate(120);
+      if (lastQueueVibrationState !== vibrationState || previousStage !== 'soon') {
+        triggerQueueVibration([180, 100, 180]);
+        try { sessionStorage.setItem(stageKey, 'soon'); } catch (e) {}
       }
     } catch (e) {}
   } else {
     bannerEl.textContent = tQueue('turn_wait_banner');
     bannerEl.className = 'turn-banner big-public show wait';
+    try { sessionStorage.setItem(stageKey, 'wait'); } catch (e) {}
   }
 
   lastQueueVibrationState = vibrationState;
