@@ -405,6 +405,123 @@
   margin: 10px auto 5px;
   display: block;
 }
+
+:root{
+  --brand-red:#E53935;
+  --brand-red-soft:#FCE9E7;
+  --brand-orange:#FF7043;
+  --brand-text:#1F2937;
+  --brand-muted:#6B7280;
+  --brand-green:#4F8A5B;
+  --brand-green-soft:#EAF5ED;
+}
+
+.logo{
+  width:88px !important;
+  margin:8px auto 10px !important;
+  display:block !important;
+  border-radius:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+}
+
+.org-name{
+  color:var(--brand-red) !important;
+  letter-spacing:.14em !important;
+}
+
+.helper-title,
+.vqo-title,
+.queue-summary-title,
+.section-title,
+.current-call-label,
+.confirm-title{
+  color:var(--brand-red) !important;
+}
+
+.submit-btn,
+.ux-selected-pill{
+  background:linear-gradient(135deg,var(--brand-green),#6AA678) !important;
+  box-shadow:0 8px 18px rgba(79,138,91,.18) !important;
+}
+
+.submit-btn:hover,
+.ux-selected-pill:hover{
+  filter:brightness(.98);
+}
+
+.tag,
+.selected-badge{
+  background:var(--brand-red-soft) !important;
+  color:var(--brand-red) !important;
+  border:1px solid rgba(229,57,53,.12);
+}
+
+.status-msg,
+.event-sub,
+.queue-note,
+.vqo-note{
+  color:var(--brand-muted) !important;
+}
+
+.card,
+.helper-box,
+#volunteerQueueOverview,
+.pickup-option,
+.event-card,
+.input-group input,
+#queueCard .input-group,
+#calledNumberBox{
+  border-radius:22px !important;
+}
+
+.logo-area{
+  padding-top:8px !important;
+}
+
+.version{
+  color:#7b8794 !important;
+  margin-top:8px !important;
+  margin-bottom:14px !important;
+}
+
+#uxTopNav{
+  margin-top:6px !important;
+}
+
+#uxSecondaryNav{
+  margin-top:6px !important;
+  margin-bottom:18px !important;
+}
+
+#mainForm{
+  padding-top:6px !important;
+}
+
+.card{
+  box-shadow:0 14px 34px rgba(0,0,0,.05) !important;
+}
+
+.section-label{
+  color:#6B7280 !important;
+}
+
+#queueTurnBanner.show.nowsoft{
+  background:linear-gradient(135deg,var(--brand-red-soft),#FFF3F1) !important;
+  color:var(--brand-red) !important;
+  border-color:rgba(229,57,53,.22) !important;
+}
+
+#queueTurnBanner.show.ahead{
+  background:linear-gradient(135deg,#FFF7E8,#FFF3E0) !important;
+  color:#B45309 !important;
+}
+
+.queue-ahead-pill.show{
+  background:var(--brand-red-soft) !important;
+  color:var(--brand-red) !important;
+  border-color:rgba(229,57,53,.16) !important;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -417,7 +534,7 @@
     <div class="org-name">Medmänniska Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
 <img src="logo.png" class="logo">
-    <div class="version">Version D14.9.9 – logo added</div>
+    <div class="version">Version D15.0.0 – design version</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -924,7 +1041,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.9.9 – logo added<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D15.0.0 – design version<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -964,7 +1081,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.9.9 – logo added<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D15.0.0 – design version<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
