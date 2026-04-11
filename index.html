@@ -410,7 +410,7 @@
     
     <div class="org-name">Medmänniska Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
-    <div class="version">Version D14.9.7 – stronger vibration fix</div>
+    <div class="version">Version D14.9.8 – pickup booked by name</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -917,7 +917,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D14.9.7 – stronger vibration fix<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D14.9.8 – pickup booked by name<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -957,7 +957,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D14.9.7 – stronger vibration fix<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D14.9.8 – pickup booked by name<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -1855,11 +1855,20 @@ function renderPublicEvents() {
         <div style="margin-top:10px;" onclick="event.stopPropagation()">
           <div class="section-label">Välj var du kan hämta</div>
           ${allowed.map(loc => {
-            const isBooked = booked.has(loc);
+            const booking = signupsCache.find(s =>
+              s.event_id === ev.id &&
+              !s.is_waitlist &&
+              Array.isArray(s.selected_locations) &&
+              s.selected_locations.includes(loc)
+            );
+            const isBooked = !!booking;
+            const bookedByName = booking && booking.name ? String(booking.name).trim() : '';
             return `
               <label class="pickup-option ${isBooked ? 'booked' : ''}" onclick="event.stopPropagation()">
                 <input type="checkbox" value="${escapeHtml(loc)}" ${isBooked ? 'disabled' : ''} onclick="event.stopPropagation()" onchange="refreshSignupButton()">
-                <span onclick="event.stopPropagation()"><strong>${escapeHtml(loc)}</strong><br><small>${isBooked ? 'Redan bokat' : 'Ledigt'}</small></span>
+                <span onclick="event.stopPropagation()">
+                  <strong>${escapeHtml(loc)}</strong><br><small>${isBooked ? ('Redan bokat' + (bookedByName ? ' · Bokad av: ' + escapeHtml(bookedByName) : '')) : 'Ledigt'}</small>
+                </span>
               </label>
             `;
           }).join('')}
