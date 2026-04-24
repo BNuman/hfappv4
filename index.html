@@ -534,7 +534,7 @@
     <div class="org-name">Medmänniska Sverige</div>
     <h1 id="mainPageTitle">Volontär</h1>
 <img src="logo.png" class="logo">
-    <div class="version">Version D15.0.1 – combined pickup option</div>
+    <div class="version">Version D15.0.2 – signup stability fixes</div>
   
   <div id="uxTopNav" class="ux-top-nav volunteer-first-nav">
     <button class="ux-selected-pill" id="uxBtnVolunteer" type="button" onclick="showVolunteerView()">Volontär</button>
@@ -667,6 +667,7 @@
       <div class="section-label" style="margin-top:12px;">Adminlösenord</div>
       <input type="password" id="adminPwInput" placeholder="Ange lösenord…" onkeydown="if(event.key==='Enter') doLogin()">
       <div class="login-error" id="loginError">❌ Kunde inte logga in.</div>
+      <div class="helper-mini" style="margin-top:10px;">Admin-inloggning hanteras via Supabase Auth. Lägg till fler admins som användare i Supabase.</div>
       <br><br>
       <button class="submit-btn" type="button" onclick="doLogin()">Logga in</button>
     </div>
@@ -1041,7 +1042,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital kö',
     language_label: 'Välj språk',
     page_title: 'Digital kö',
-    page_version: 'Version D15.0.1 – combined pickup option<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
+    page_version: 'Version D15.0.2 – signup stability fixes<br>2. Tryck på <strong>Gå med i kön</strong><br>3. Vänta tills du får ett nummer',
     name_label: 'Ditt namn (valfritt)',
     name_placeholder: 'Skriv ditt namn om du vill',
     join: 'Gå med i kön',
@@ -1081,7 +1082,7 @@ const QUEUE_I18N = {
     queue_label: 'Digital queue',
     language_label: 'Choose language',
     page_title: 'Digital queue',
-    page_version: 'Version D15.0.1 – combined pickup option<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
+    page_version: 'Version D15.0.2 – signup stability fixes<br>2. Press <strong>Join the queue</strong><br>3. Wait until you receive a number',
     name_label: 'Your name (optional)',
     name_placeholder: 'Enter your name if you want',
     join: 'Join the queue',
@@ -2063,6 +2064,27 @@ function selectEvent(id) {
   renderPublicEvents();
   
 }
+
+function getPickupBookedByOthers(eventId, locations, ownSignupId = null) {
+  return locations.filter(loc =>
+    signupsCache.some(s =>
+      s.event_id === eventId &&
+      s.id !== ownSignupId &&
+      !s.is_waitlist &&
+      Array.isArray(s.selected_locations) &&
+      s.selected_locations.includes(loc)
+    )
+  );
+}
+
+function getSignupByName(eventId, name) {
+  const clean = String(name || '').trim().toLowerCase();
+  return signupsCache.find(s =>
+    s.event_id === eventId &&
+    String(s.name || '').trim().toLowerCase() === clean
+  );
+}
+
 function refreshSignupButton() {
   const btn = document.getElementById('signupBtn');
   const name = document.getElementById('nameInput').value.trim();
@@ -2103,10 +2125,10 @@ async function submitSignup() {
   try {
     hidePublicStatus();
 
-    const existingSignup = signupsCache.find(s =>
-      s.event_id === ev.id &&
-      String(s.name || '').trim().toLowerCase() === name.toLowerCase()
-    );
+    // Always refresh latest signups before saving to avoid stale booking data.
+    await loadSignups();
+
+    const existingSignup = getSignupByName(ev.id, name);
 
     let result;
     if (isPickupEvent(ev)) {
@@ -2140,9 +2162,21 @@ async function submitSignup() {
           return;
         }
 
-        const mergedLocations = [...currentLocations, ...newUniqueLocations];
+        await loadSignups();
+        const latestExistingSignup = getSignupByName(ev.id, name) || existingSignup;
+        const latestCurrentLocations = Array.isArray(latestExistingSignup.selected_locations) ? latestExistingSignup.selected_locations : currentLocations;
+        const latestNewUniqueLocations = selectedLocations.filter(loc => !latestCurrentLocations.includes(loc));
+        const latestConflicts = getPickupBookedByOthers(ev.id, latestNewUniqueLocations, latestExistingSignup.id);
 
-        await api('/rest/v1/signups?id=eq.' + encodeURIComponent(existingSignup.id), {
+        if (latestConflicts.length) {
+          showPublicStatus('Ett eller flera hämtställen är precis bokade av någon annan: ' + latestConflicts.join(', ') + '. Välj ett annat hämtställe.', false);
+          renderPublicEvents();
+          return;
+        }
+
+        const mergedLocations = [...latestCurrentLocations, ...latestNewUniqueLocations];
+
+        await api('/rest/v1/signups?id=eq.' + encodeURIComponent(latestExistingSignup.id), {
           method: 'PATCH',
           headers: getHeaders(false, 'return=minimal'),
           body: JSON.stringify({
@@ -2156,6 +2190,14 @@ async function submitSignup() {
         document.getElementById('confirmMsg').textContent = 'Dina hämtställen har uppdaterats.';
         document.getElementById('confirmTitle').textContent = 'Din bokning är uppdaterad!';
       } else {
+        await loadSignups();
+        const conflicts = getPickupBookedByOthers(ev.id, selectedLocations);
+        if (conflicts.length) {
+          showPublicStatus('Ett eller flera hämtställen är precis bokade av någon annan: ' + conflicts.join(', ') + '. Välj ett annat hämtställe.', false);
+          renderPublicEvents();
+          return;
+        }
+
         result = await api('/rest/v1/rpc/signup_volunteer_v2', {
           method: 'POST',
           headers: getHeaders(false),
@@ -2167,6 +2209,14 @@ async function submitSignup() {
         });
 
         await reloadAll();
+
+        const afterSignup = getSignupByName(ev.id, name);
+        const stillConflicting = getPickupBookedByOthers(ev.id, selectedLocations, afterSignup?.id || null);
+        if (stillConflicting.length) {
+          showPublicStatus('Bokningen kunde inte bekräftas eftersom något hämtställe redan bokats av annan volontär: ' + stillConflicting.join(', ') + '.', false);
+          renderPublicEvents();
+          return;
+        }
 
         document.getElementById('confirmBadge').textContent = selectedLocations.join(', ');
         document.getElementById('confirmMsg').textContent = 'Tack! Du är nu anmäld till hämtningen.';
@@ -2192,6 +2242,13 @@ async function submitSignup() {
       const status = Array.isArray(result) && result[0] ? result[0].status : 'confirmed';
       if (status === 'duplicate') {
         showPublicStatus('Du är redan anmäld till denna aktivitet.', false);
+        return;
+      }
+
+      const confirmedSignup = getSignupByName(ev.id, name);
+      if (!confirmedSignup) {
+        showPublicStatus('Anmälan kunde inte bekräftas. Försök igen eller skriv till ansvarig.', false);
+        renderPublicEvents();
         return;
       }
 
